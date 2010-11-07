@@ -1,0 +1,32 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+	<f:entry title="${%File}">
+		<f:textbox name="file" value="${instance.file}" />
+	</f:entry>
+
+	<f:entry title="${%Enable repository logging}" description="enables logging for repository and transfer">
+		<f:checkbox name="enableRepoLogging" checked="${instance.enableRepoLogging()}" />
+	</f:entry>
+
+	<f:entry title="${%GroupId}">
+		<f:textbox name="groupId" />
+	</f:entry>
+
+	<f:entry title="${%ArtifactId}">
+		<f:textbox name="artifactId" />
+	</f:entry>
+
+	<f:entry title="${%Version}">
+		<f:textbox name="version" />
+	</f:entry>
+
+	<f:entry title="${%Classifier}">
+		<f:textbox name="classifier" />
+	</f:entry>
+
+	<f:entry title="${%Extension}">
+		<f:textbox name="extension" />
+	</f:entry>
+
+</j:jelly>

@@ -1,0 +1,59 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+	<f:entry title="${%Fail on error}"
+		description="should the build brake if an atrtifact resolution fails?">
+		<f:checkbox name="failOnError" checked="${instance.failOnError()}" />
+	</f:entry>
+
+	<f:entry title="${%Enable repository logging}" description="enables logging for repository and transfer">
+		<f:checkbox name="enableRepoLogging" checked="${instance.enableRepoLogging()}" />
+	</f:entry>
+
+	<f:entry title="${%Target directory}">
+		<f:textbox name="targetDirectory" value="${instance.targetDirectory}" />
+	</f:entry>
+
+	<f:entry title="${Artifacts}">
+		<f:repeatable var="artifact" items="${instance.artifacts}"
+			name="artifacts" noAddButton="true" minimum="1">
+			<table width="100%">
+
+				<f:entry title="${%GroupId}">
+					<f:textbox name="groupId" value="${artifact.groupId}" />
+				</f:entry>
+
+				<f:entry title="${%ArtifactId}">
+					<f:textbox name="artifactId" value="${artifact.artifactId}" />
+				</f:entry>
+
+				<f:entry title="${%Version}">
+					<f:textbox name="version" value="${artifact.version}" />
+				</f:entry>
+
+				<f:entry title="${%Classifier}">
+					<f:textbox name="classifier" value="${artifact.classifier}" />
+				</f:entry>
+
+				<f:entry title="${%Extension}">
+					<f:textbox name="extension" value="${artifact.extension}"
+						default="jar" />
+				</f:entry>
+
+				<f:entry title="${%Target file name}"
+					description="(optional) if not defined the file name will be as resolved, can also include subdirectories">
+					<f:textbox name="targetFileName" value="${artifact.targetFileName}" />
+				</f:entry>
+
+				<f:entry>
+					<div align="right">
+						<input type="button" value="${%Add artifact}" class="repeatable-add show-if-last" />
+						<input type="button" value="${%Delete}"
+							class="repeatable-delete show-if-not-only" style="margin-left: 1em;" />
+					</div>
+				</f:entry>
+			</table>
+		</f:repeatable>
+	</f:entry>
+
+</j:jelly>
