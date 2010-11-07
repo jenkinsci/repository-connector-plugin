@@ -4,13 +4,13 @@
 	<parent>
 		<groupId>org.jvnet.hudson.plugins</groupId>
 		<artifactId>plugin</artifactId>
-		<version>1.370</version><!-- which version of Hudson is this plugin built 
-			against? -->
+		<version>1.370</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<artifactId>repository-connector</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<name>Repository Connector</name>
+	<version>0.5-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 
 	<properties>
@@ -22,6 +22,17 @@
 
 	<!-- get every artifact through maven.glassfish.org, which proxies all the 
 		artifacts that we need -->
+	<description>Repository Connector adds a build step which allows to resolve artifacts from a maven repository like nexus. 
+In future it will also allow to deploy artifacts to the same repo.</description>
+	<url>http://wiki.hudson-ci.org/display/HUDSON/Repository+Connector+Plugin</url>
+	<inceptionYear>2010</inceptionYear>
+	<developers>
+		<developer>
+			<id>domi</id>
+			<name>domi</name>
+			<email>-</email>
+		</developer>
+	</developers>
 	<repositories>
 		<repository>
 			<id>m.g.o-public</id>
