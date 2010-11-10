@@ -9,7 +9,7 @@
 
 	<artifactId>repository-connector</artifactId>
 	<name>Repository Connector</name>
-	<version>0.6</version>
+	<version>0.7-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 
 	<properties>
@@ -98,10 +98,4 @@ In future it will also allow to deploy artifacts to the same repo.</description>
 			</exclusions>
 		</dependency>
 	</dependencies>
-
-  <scm>
-    <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/tags/repository-connector-0.6</connection>
-    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/tags/repository-connector-0.6</developerConnection>
-    <url>https://hudson.dev.java.net/source/browse/hudson/tags/repository-connector-0.6</url>
-  </scm>
 </project>
