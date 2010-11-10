@@ -14,6 +14,28 @@
 		<f:textbox name="targetDirectory" value="${instance.targetDirectory}" />
 	</f:entry>
 
+	<f:entry title="${%Release update policy}">
+		<select class="setting-input" name="releaseUpdatePolicy">
+			<f:option selected="${instance.releaseUpdatePolicy=='daily'}"
+				value="never">daily</f:option>
+			<f:option selected="${instance.releaseUpdatePolicy=='never'}"
+				value="never">never</f:option>
+			<f:option selected="${instance.releaseUpdatePolicy=='always'}"
+				value="always">always</f:option>
+		</select>
+	</f:entry>
+
+	<f:entry title="${%Snapshot update policy}">
+		<select class="setting-input" name="snapshotUpdatePolicy">
+			<f:option selected="${instance.snapshotUpdatePolicy=='daily'}"
+				value="never">daily</f:option>
+			<f:option selected="${instance.snapshotUpdatePolicy=='never'}"
+				value="never">never</f:option>
+			<f:option selected="${instance.snapshotUpdatePolicy=='always'}"
+				value="always">always</f:option>
+		</select>
+	</f:entry>
+
 	<f:entry title="${Artifacts}">
 		<f:repeatable var="artifact" items="${instance.artifacts}"
 			name="artifacts" noAddButton="true" minimum="1">

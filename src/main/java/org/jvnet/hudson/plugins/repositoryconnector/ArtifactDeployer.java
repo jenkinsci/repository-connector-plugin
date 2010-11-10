@@ -36,13 +36,13 @@ public class ArtifactDeployer extends Builder implements Serializable {
 	static Logger log = Logger.getLogger(ArtifactDeployer.class.getName());
 
 	public boolean enableRepoLogging = true;
-	public String file;
-	public String groupId;
-	public String artifactId;
-	public String classifier;
-	public String version;
-	public String extension;
-	public String repoId;
+	public final String file;
+	public final String groupId;
+	public final String artifactId;
+	public final String classifier;
+	public final String version;
+	public final String extension;
+	public final String repoId;
 
 	@DataBoundConstructor
 	public ArtifactDeployer(String groupId, String artifactId, String classifier, String version, String extension, String file, String repoId,

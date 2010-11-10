@@ -30,6 +30,7 @@ import org.jvnet.hudson.plugins.repositoryconnector.aether.AetherResult;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.sonatype.aether.collection.DependencyCollectionException;
+import org.sonatype.aether.repository.RepositoryPolicy;
 import org.sonatype.aether.resolution.ArtifactResolutionException;
 
 /**
@@ -50,13 +51,22 @@ public class ArtifactResolver extends Builder implements Serializable {
 	public List<Artifact> artifacts;
 	public boolean failOnError = true;
 	public boolean enableRepoLogging = true;
+	public final String snapshotUpdatePolicy;
+	public final String releaseUpdatePolicy;
+	public final String snapshotChecksumPolicy;
+	public final String releaseChecksumPolicy;
 
 	@DataBoundConstructor
-	public ArtifactResolver(String targetDirectory, List<Artifact> artifacts, boolean failOnError, boolean enableRepoLogging) {
+	public ArtifactResolver(String targetDirectory, List<Artifact> artifacts, boolean failOnError, boolean enableRepoLogging, String snapshotUpdatePolicy,
+			String snapshotChecksumPolicy, String releaseUpdatePolicy, String releaseChecksumPolicy) {
 		this.artifacts = artifacts != null ? artifacts : new ArrayList<Artifact>();
 		this.targetDirectory = StringUtils.isBlank(targetDirectory) ? DEFAULT_TARGET : targetDirectory;
 		this.failOnError = failOnError;
 		this.enableRepoLogging = enableRepoLogging;
+		this.releaseUpdatePolicy = releaseUpdatePolicy;
+		this.releaseChecksumPolicy = RepositoryPolicy.CHECKSUM_POLICY_WARN;
+		this.snapshotUpdatePolicy = snapshotUpdatePolicy;
+		this.snapshotChecksumPolicy = RepositoryPolicy.CHECKSUM_POLICY_WARN;
 	}
 
 	public String getTargetDirectory() {
@@ -112,7 +122,8 @@ public class ArtifactResolver extends Builder implements Serializable {
 	private boolean download(AbstractBuild<?, ?> build, final PrintStream logger, final Collection<Repository> repositories, File localRepository) {
 		boolean hasError = false;
 
-		Aether aether = new Aether(repositories, localRepository, logger, enableRepoLogging);
+		Aether aether = new Aether(repositories, localRepository, logger, enableRepoLogging, snapshotUpdatePolicy, snapshotChecksumPolicy, releaseUpdatePolicy,
+				releaseChecksumPolicy);
 
 		for (Artifact artifact : artifacts) {
 

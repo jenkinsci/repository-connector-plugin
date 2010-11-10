@@ -38,6 +38,7 @@ import org.sonatype.aether.installation.InstallationException;
 import org.sonatype.aether.repository.Authentication;
 import org.sonatype.aether.repository.LocalRepository;
 import org.sonatype.aether.repository.RemoteRepository;
+import org.sonatype.aether.repository.RepositoryPolicy;
 import org.sonatype.aether.resolution.ArtifactResolutionException;
 import org.sonatype.aether.spi.connector.RepositoryConnectorFactory;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
@@ -49,22 +50,31 @@ public class Aether {
 	private final LocalRepository localRepository;
 	private final PrintStream logger;
 	private final boolean extendedLogging;
+	public String snapshotUpdatePolicy;
+	public String releaseUpdatePolicy;
+	public String snapshotChecksumPolicy;
+	public String releaseChecksumPolicy;
 
-	public Aether(Collection<Repository> remoteRepositories, File localRepository, PrintStream logger, boolean extendedLogging) {
+	public Aether(Collection<Repository> remoteRepositories, File localRepository, PrintStream logger, boolean extendedLogging, String snapshotUpdatePolicy,
+			String snapshotChecksumPolicy, String releaseUpdatePolicy, String releaseChecksumPolicy) {
 		this.remoteRepositories = remoteRepositories;
 		this.repositorySystem = newManualSystem();
 		this.localRepository = new LocalRepository(localRepository);
 		this.logger = logger;
 		this.extendedLogging = extendedLogging;
+		this.releaseUpdatePolicy = releaseUpdatePolicy;
+		this.releaseChecksumPolicy = releaseChecksumPolicy;
+		this.snapshotUpdatePolicy = snapshotUpdatePolicy;
+		this.snapshotChecksumPolicy = snapshotChecksumPolicy;
 	}
 
 	public Aether(Repository remoteRepository, File localRepository, PrintStream logger, boolean extendedLogging) {
 		this.remoteRepositories = new ArrayList<Repository>();
-		remoteRepositories.add(remoteRepository);
-		this.repositorySystem = newManualSystem();
+		this.remoteRepositories.add(remoteRepository);
 		this.localRepository = new LocalRepository(localRepository);
 		this.logger = logger;
 		this.extendedLogging = extendedLogging;
+		this.repositorySystem = newManualSystem();
 	}
 
 	private RepositorySystem newManualSystem() {
@@ -96,6 +106,10 @@ public class Aether {
 		for (Repository repo : remoteRepositories) {
 			logger.println("define repo: " + repo);
 			RemoteRepository repoObj = new RemoteRepository(repo.getId(), repo.getType(), repo.getUrl());
+			RepositoryPolicy snapshotPolicy = new RepositoryPolicy(true, snapshotUpdatePolicy, snapshotChecksumPolicy);
+			RepositoryPolicy releasePolicy = new RepositoryPolicy(true, releaseUpdatePolicy, releaseChecksumPolicy);
+			repoObj.setPolicy(true, snapshotPolicy);
+			repoObj.setPolicy(false, releasePolicy);
 			collectRequest.addRepository(repoObj);
 		}
 
