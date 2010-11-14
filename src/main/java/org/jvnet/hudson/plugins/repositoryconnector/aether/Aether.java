@@ -21,7 +21,6 @@ import java.util.Collection;
 import org.apache.maven.repository.internal.DefaultServiceLocator;
 import org.apache.maven.repository.internal.MavenRepositorySystemSession;
 import org.jvnet.hudson.plugins.repositoryconnector.Repository;
-import org.ops4j.pax.url.aether.internal.ManualWagonProvider;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.artifact.Artifact;
@@ -79,7 +78,7 @@ public class Aether {
 
 	private RepositorySystem newManualSystem() {
 		DefaultServiceLocator locator = new DefaultServiceLocator();
-		locator.setServices(WagonProvider.class, new ManualWagonProvider());
+		locator.setServices(WagonProvider.class, new org.jvnet.hudson.plugins.repositoryconnector.wagon.ManualWagonProvider());
 		locator.addService(RepositoryConnectorFactory.class, WagonRepositoryConnectorFactory.class);
 		return locator.getService(RepositorySystem.class);
 	}
