@@ -1,32 +1,67 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
 	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-	<f:entry title="${%File}">
-		<f:textbox name="file" value="${instance.file}" />
-	</f:entry>
-
 	<f:entry title="${%Enable repository logging}" description="enables logging for repository and transfer">
 		<f:checkbox name="enableRepoLogging" checked="${instance.enableRepoLogging()}" />
 	</f:entry>
 
-	<f:entry title="${%GroupId}">
-		<f:textbox name="groupId" />
+	<f:entry title="${%Repository}">
+		<select class="setting-input" name="repoId" description="Select the repository to deploy the artifact to">
+			<j:forEach var="repo" items="${instance.repos}">
+				<f:option selected="${instance.repoId==repo.id}" value="${repo.id}">${repo.id} - ${repo.url}</f:option>
+			</j:forEach>
+		</select>
+	</f:entry>
+	
+	<f:entry title="${%Snapshot Repository}">
+		<select class="setting-input" name="snapshotRepoId" description="Select the snapshot repository to deploy the artifact to">
+			<j:forEach var="repo" items="${instance.repos}">
+				<f:option selected="${instance.snapshotRepoId==repo.id}" value="${repo.id}">${repo.id} - ${repo.url}</f:option>
+			</j:forEach>
+		</select>
 	</f:entry>
 
-	<f:entry title="${%ArtifactId}">
-		<f:textbox name="artifactId" />
+	<f:entry title="${Artifacts}">
+		<f:repeatable var="artifact" items="${instance.artifacts}"
+			name="artifacts" noAddButton="true" minimum="1">
+			<table width="100%">
+
+				<f:entry title="${%GroupId}">
+					<f:textbox name="groupId" value="${artifact.groupId}" />
+				</f:entry>
+
+				<f:entry title="${%ArtifactId}">
+					<f:textbox name="artifactId" value="${artifact.artifactId}" />
+				</f:entry>
+
+				<f:entry title="${%Version}">
+					<f:textbox name="version" value="${artifact.version}" />
+				</f:entry>
+
+				<f:entry title="${%Classifier}">
+					<f:textbox name="classifier" value="${artifact.classifier}" />
+				</f:entry>
+
+				<f:entry title="${%Extension}">
+					<f:textbox name="extension" value="${artifact.extension}"
+						default="jar" />
+				</f:entry>
+
+				<f:entry title="${%Target file name}"
+					description="(optional) if not defined the file name will be as resolved, can also include subdirectories">
+					<f:textbox name="targetFileName" value="${artifact.targetFileName}" />
+				</f:entry>
+
+				<f:entry>
+					<div align="right">
+						<input type="button" value="${%Add artifact}" class="repeatable-add show-if-last" />
+						<input type="button" value="${%Delete}"
+							class="repeatable-delete show-if-not-only" style="margin-left: 1em;" />
+					</div>
+				</f:entry>
+			</table>
+		</f:repeatable>
 	</f:entry>
 
-	<f:entry title="${%Version}">
-		<f:textbox name="version" />
-	</f:entry>
-
-	<f:entry title="${%Classifier}">
-		<f:textbox name="classifier" />
-	</f:entry>
-
-	<f:entry title="${%Extension}">
-		<f:textbox name="extension" />
-	</f:entry>
 
 </j:jelly>
