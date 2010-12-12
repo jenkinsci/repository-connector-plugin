@@ -7,7 +7,6 @@ import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
-import hudson.model.PasswordParameterDefinition;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
@@ -128,26 +127,31 @@ public class ArtifactDeployer extends Notifier implements Serializable {
 				final String classifier = resolveVariable(variableResolver, a.getClassifier());
 				final String artifactId = resolveVariable(variableResolver, a.getArtifactId());
 				final String groupId = resolveVariable(variableResolver, a.getGroupId());
-				final String extension = resolveVariable(variableResolver, a.getExtension());
+				final String packaging = resolveVariable(variableResolver, a.getExtension());
 
-				String fileName = a.getTargetFileName();
+				Artifact aTmp = new Artifact(groupId, artifactId, classifier, version, packaging, a.getTargetFileName());
+
+				String fileName = aTmp.getTargetFileName();
 				FilePath source = new FilePath(build.getWorkspace(), fileName);
-				final File targetFile = File.createTempFile(fileName, null);
+				String f = new File(fileName).getName();
+				int dotPos = f.lastIndexOf(".");
+				String extension = f.substring(dotPos + 1);
+				final File targetFile = File.createTempFile(f, "." + extension);
 				FilePath target = new FilePath(targetFile);
 
 				logger.println("INFO: copy source " + source.toURI() + " to master " + target.toURI());
 				source.copyTo(target);
 
 				org.sonatype.aether.artifact.Artifact artifact = new DefaultArtifact(groupId, artifactId, classifier, extension, version);
-				logger.println("INFO: deploy artifact: " + artifactId);
+				logger.println("INFO: deploy artifact " + aTmp);
 				artifact = artifact.setFile(targetFile);
 				org.sonatype.aether.artifact.Artifact pom = new SubArtifact(artifact, classifier, "pom");
-				final File tmpPom = getTempPom(a);
+				final File tmpPom = getTempPom(aTmp);
 				pom = pom.setFile(tmpPom);
 
 				final String tmpRepoId = version.contains("SNAPSHOT") ? snapshotRepoId : repoId;
 				Repository repo = getRepoById(tmpRepoId);
-				System.out.println(this.overwriteSecurity);
+				logger.println("INFO: deploy to repository " + repo);
 				if (isOverwriteSecurity()) {
 					logger.println("INFO: define repo access security...");
 					String tmpuser = resolveVariable(variableResolver, overwriteSecurity.user);
@@ -182,7 +186,6 @@ public class ArtifactDeployer extends Notifier implements Serializable {
 				value = potentalVaraible.substring(2, potentalVaraible.length() - 1);
 				value = variableResolver.resolve(value);
 				log.log(Level.FINE, "resolve " + potentalVaraible + " to " + value);
-				System.out.println("resolve " + potentalVaraible + " to " + value);
 			}
 		}
 		return value;
@@ -204,7 +207,7 @@ public class ArtifactDeployer extends Notifier implements Serializable {
 	public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
 		public DescriptorImpl() {
-			//load();
+			// load();
 		}
 
 		public boolean isApplicable(Class<? extends AbstractProject> aClass) {
@@ -218,7 +221,7 @@ public class ArtifactDeployer extends Notifier implements Serializable {
 		@Override
 		public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
 
-			//save();
+			// save();
 			return true;
 		}
 
@@ -248,14 +251,17 @@ public class ArtifactDeployer extends Notifier implements Serializable {
 			}
 			bufferedReader.close();
 			pomContent = stringBuilder.toString();
-			pomContent.replace("ARTIFACTID", artifact.getArtifactId());
-			pomContent.replace("GROUPID", artifact.getArtifactId());
-			pomContent.replace("VERSION", artifact.getArtifactId());
-			pomContent.replace("PACKAGING", artifact.getArtifactId());
-			// FIXME what about classifier?
-			// pomContent.replace("PACKAGING", artifact.getArtifactId());
+			pomContent = pomContent.replace("ARTIFACTID", artifact.getArtifactId());
+			pomContent = pomContent.replace("GROUPID", artifact.getGroupId());
+			pomContent = pomContent.replace("VERSION", artifact.getVersion());
+			// FIXME how to handle packaging vs extension?
+			pomContent = pomContent.replace("PACKAGING", artifact.getExtension());
+
 		} catch (Exception e) {
 			log.log(Level.SEVERE, "not able to create temporal pom: " + e.getMessage());
+		}
+		if (log.isLoggable(Level.FINE)) {
+			log.log(Level.FINE, "used POM: " + pomContent);
 		}
 		return pomContent;
 	}

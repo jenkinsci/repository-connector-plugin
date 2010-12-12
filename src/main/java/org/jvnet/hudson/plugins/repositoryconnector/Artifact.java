@@ -73,4 +73,8 @@ public class Artifact implements Serializable {
 		return targetFileName;
 	}
 
+	@Override
+	public String toString() {
+		return "[Artifact " + groupId + ":" + artifactId + ":" + extension + ":" + classifier + ":" + version + "]";
+	}
 }

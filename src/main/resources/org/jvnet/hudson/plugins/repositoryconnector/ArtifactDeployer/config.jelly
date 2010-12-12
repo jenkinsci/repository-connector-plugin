@@ -58,7 +58,7 @@
 					<f:textbox name="classifier" value="${artifact.classifier}" />
 				</f:entry>
 
-				<f:entry title="${%Extension}">
+				<f:entry title="${%Packaging}">
 					<f:textbox name="extension" value="${artifact.extension}" />
 				</f:entry>
 
