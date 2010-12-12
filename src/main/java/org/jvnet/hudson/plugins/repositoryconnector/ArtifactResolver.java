@@ -180,7 +180,7 @@ public class ArtifactResolver extends Builder implements Serializable {
 
 		private static final List<Repository> DEFAULT_REPOS = new ArrayList<Repository>();
 		static {
-			DEFAULT_REPOS.add(new Repository("central", "default", "http://repo1.maven.org/maven2", null, null));
+			DEFAULT_REPOS.add(new Repository("central", "default", "http://repo1.maven.org/maven2", null, null, false));
 		}
 
 		private Set<Repository> repos = new HashSet<Repository>();
@@ -199,7 +199,7 @@ public class ArtifactResolver extends Builder implements Serializable {
 		}
 
 		public String getDisplayName() {
-			return "Artifact Resolver";
+			return "Artifact Resolver (Repository Connector)";
 		}
 
 		@Override

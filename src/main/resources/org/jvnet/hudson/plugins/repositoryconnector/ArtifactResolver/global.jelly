@@ -4,7 +4,7 @@
 
 		<f:entry title="Local Repository"
 			description="local repository on master (falls back to 'java.io.tmpdir')"
-			help="/plugin/artifact-resolver/help-globalConfig.html" field="localRepository">
+			help="/plugin/repository-connector/help-globalConfig.html" field="localRepository">
 			<f:textbox name="artifactresolver.localRepository" value="${descriptor.localRepository}" />
 		</f:entry>
 
@@ -21,9 +21,21 @@
 					<f:entry title="${%Repo type}">
 						<f:textbox name="type" value="${repo.type}" />
 					</f:entry>
+					
+					<f:entry title="${%Repo manager}" description="checked if this repository points at a repository manager, unchecked if the repository is just serving static contents.">
+                        <f:checkbox name="repositoryManager" checked="${repo.isRepositoryManager()}"/>
+                    </f:entry>
 
 					<f:entry title="${%Url}">
 						<f:textbox name="url" value="${repo.url}" />
+					</f:entry>
+
+					<f:entry title="${%User}">
+						<f:textbox name="user" value="${repo.user}" />
+					</f:entry>
+
+					<f:entry title="${%Password}">
+						<f:password name="password" value="${repo.password}" />
 					</f:entry>
 
 					<f:entry>

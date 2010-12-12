@@ -7,6 +7,7 @@ import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
+import hudson.model.PasswordParameterDefinition;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
@@ -48,21 +49,42 @@ public class ArtifactDeployer extends Notifier implements Serializable {
 
 	static Logger log = Logger.getLogger(ArtifactDeployer.class.getName());
 
+	public final UserPwd overwriteSecurity;
 	public boolean enableRepoLogging = true;
 	public final String repoId;
 	public final String snapshotRepoId;
 	public List<Artifact> artifacts;
 
 	@DataBoundConstructor
-	public ArtifactDeployer(List<Artifact> artifacts, String repoId, String snapshotRepoId, boolean enableRepoLogging) {
+	public ArtifactDeployer(List<Artifact> artifacts, String repoId, String snapshotRepoId, UserPwd overwriteSecurity, boolean enableRepoLogging) {
 		this.enableRepoLogging = enableRepoLogging;
 		this.artifacts = artifacts != null ? artifacts : new ArrayList<Artifact>();
 		this.repoId = repoId;
 		this.snapshotRepoId = snapshotRepoId;
+		this.overwriteSecurity = overwriteSecurity;
+		System.out.println(this.overwriteSecurity);
 	}
 
 	public boolean enableRepoLogging() {
 		return enableRepoLogging;
+	}
+
+	public boolean isOverwriteSecurity() {
+		return overwriteSecurity != null;
+	}
+
+	public String getUserName() {
+		if (isOverwriteSecurity()) {
+			return overwriteSecurity.user;
+		}
+		return null;
+	}
+
+	public String getPassword() {
+		if (isOverwriteSecurity()) {
+			return overwriteSecurity.password;
+		}
+		return null;
 	}
 
 	public Set<Repository> getRepos() {
@@ -97,6 +119,8 @@ public class ArtifactDeployer extends Notifier implements Serializable {
 
 		final VariableResolver<String> variableResolver = build.getBuildVariableResolver();
 
+		Aether aether = new Aether(new File(getResolverDescriptor().getLocalRepository()), logger, enableRepoLogging);
+
 		try {
 			for (Artifact a : artifacts) {
 
@@ -106,35 +130,40 @@ public class ArtifactDeployer extends Notifier implements Serializable {
 				final String groupId = resolveVariable(variableResolver, a.getGroupId());
 				final String extension = resolveVariable(variableResolver, a.getExtension());
 
-				String tmpRepoId = version.contains("SNAPSHOT") ? snapshotRepoId : repoId;
-				final Repository repo = getRepoById(tmpRepoId);
-				Aether aether = new Aether(repo, new File(getResolverDescriptor().getLocalRepository()), logger, enableRepoLogging);
-
 				String fileName = a.getTargetFileName();
 				FilePath source = new FilePath(build.getWorkspace(), fileName);
 				final File targetFile = File.createTempFile(fileName, null);
 				FilePath target = new FilePath(targetFile);
 
-				logger.println("copy source " + source.toURI() + " to master " + target.toURI());
+				logger.println("INFO: copy source " + source.toURI() + " to master " + target.toURI());
 				source.copyTo(target);
 
 				org.sonatype.aether.artifact.Artifact artifact = new DefaultArtifact(groupId, artifactId, classifier, extension, version);
-				logger.println("deploy artifact: " + artifactId);
+				logger.println("INFO: deploy artifact: " + artifactId);
 				artifact = artifact.setFile(targetFile);
-				org.sonatype.aether.artifact.Artifact pom = new SubArtifact(artifact, null, "pom");
+				org.sonatype.aether.artifact.Artifact pom = new SubArtifact(artifact, classifier, "pom");
 				final File tmpPom = getTempPom(a);
 				pom = pom.setFile(tmpPom);
 
+				final String tmpRepoId = version.contains("SNAPSHOT") ? snapshotRepoId : repoId;
+				Repository repo = getRepoById(tmpRepoId);
+				System.out.println(this.overwriteSecurity);
+				if (isOverwriteSecurity()) {
+					logger.println("INFO: define repo access security...");
+					String tmpuser = resolveVariable(variableResolver, overwriteSecurity.user);
+					String tmppwd = resolveVariable(variableResolver, overwriteSecurity.password);
+					repo = new Repository(repo.getId(), repo.getType(), repo.getUrl(), tmpuser, tmppwd, repo.isRepositoryManager());
+				}
+
 				aether.install(artifact, pom);
-				aether.deploy(artifact, pom, repo.getUrl());
+				aether.deploy(repo, artifact, pom);
 
 				// clean the resources
 				targetFile.delete();
 				tmpPom.delete();
-				aether = null;
 			}
 		} catch (DeploymentException e) {
-			logger.println("ERROR: possible causes: in case of a SNAPSHOT deployment: does your remote repository allow SNAPSHOT deployments?, in case of a release dpeloyment: is this version of the artifact already deployed then does your repository allow updating artifacts?");
+			logger.println("ERROR: possible causes: 1. in case of a SNAPSHOT deployment: does your remote repository allow SNAPSHOT deployments?, 2. in case of a release dpeloyment: is this version of the artifact already deployed then does your repository allow updating artifacts?");
 			return logError("DeploymentException: ", logger, e);
 		} catch (IOException e) {
 			return logError("IOException: ", logger, e);
@@ -148,11 +177,13 @@ public class ArtifactDeployer extends Notifier implements Serializable {
 
 	private String resolveVariable(VariableResolver<String> variableResolver, String potentalVaraible) {
 		String value = potentalVaraible;
-		if (potentalVaraible.startsWith("${") && potentalVaraible.endsWith("}")) {
-			value = potentalVaraible.substring(2, potentalVaraible.length() - 1);
-			value = variableResolver.resolve(value);
-			log.log(Level.FINE, "resolve " + potentalVaraible + " to " + value);
-			System.out.println("resolve " + potentalVaraible + " to " + value);
+		if (potentalVaraible != null) {
+			if (potentalVaraible.startsWith("${") && potentalVaraible.endsWith("}")) {
+				value = potentalVaraible.substring(2, potentalVaraible.length() - 1);
+				value = variableResolver.resolve(value);
+				log.log(Level.FINE, "resolve " + potentalVaraible + " to " + value);
+				System.out.println("resolve " + potentalVaraible + " to " + value);
+			}
 		}
 		return value;
 	}
@@ -173,7 +204,7 @@ public class ArtifactDeployer extends Notifier implements Serializable {
 	public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
 		public DescriptorImpl() {
-			load();
+			//load();
 		}
 
 		public boolean isApplicable(Class<? extends AbstractProject> aClass) {
@@ -181,13 +212,13 @@ public class ArtifactDeployer extends Notifier implements Serializable {
 		}
 
 		public String getDisplayName() {
-			return "Artifact Deployer";
+			return "Repository Artifact Deployer";
 		}
 
 		@Override
 		public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
 
-			save();
+			//save();
 			return true;
 		}
 

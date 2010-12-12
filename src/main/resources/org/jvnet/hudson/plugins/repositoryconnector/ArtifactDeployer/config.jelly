@@ -6,20 +6,36 @@
 	</f:entry>
 
 	<f:entry title="${%Repository}">
-		<select class="setting-input" name="repoId" description="Select the repository to deploy the artifact to">
+		<select class="setting-input" name="repoId"
+			description="Select the repository to deploy the artifact to">
 			<j:forEach var="repo" items="${instance.repos}">
-				<f:option selected="${instance.repoId==repo.id}" value="${repo.id}">${repo.id} - ${repo.url}</f:option>
+				<f:option selected="${instance.repoId==repo.id}" value="${repo.id}">${repo.id}
+					- ${repo.url}</f:option>
 			</j:forEach>
 		</select>
 	</f:entry>
-	
+
 	<f:entry title="${%Snapshot Repository}">
-		<select class="setting-input" name="snapshotRepoId" description="Select the snapshot repository to deploy the artifact to">
+		<select class="setting-input" name="snapshotRepoId"
+			description="Select the snapshot repository to deploy the artifact to">
 			<j:forEach var="repo" items="${instance.repos}">
-				<f:option selected="${instance.snapshotRepoId==repo.id}" value="${repo.id}">${repo.id} - ${repo.url}</f:option>
+				<f:option selected="${instance.snapshotRepoId==repo.id}"
+					value="${repo.id}">${repo.id} - ${repo.url}</f:option>
 			</j:forEach>
 		</select>
 	</f:entry>
+
+
+	<f:optionalBlock name="overwriteSecurity" title="${%Overwrite permissions}"
+		checked="${instance.isOverwriteSecurity()}" help="/plugin/repository-connector/help-permissions.html">
+		<f:entry title="${%User}">
+			<f:textbox name="user" value="${instance.getUserName()}" />
+		</f:entry>
+
+		<f:entry title="${%Password}">
+			<f:password name="password" value="${instance.getPassword()}" />
+		</f:entry>
+	</f:optionalBlock>
 
 	<f:entry title="${Artifacts}">
 		<f:repeatable var="artifact" items="${instance.artifacts}"
@@ -43,12 +59,10 @@
 				</f:entry>
 
 				<f:entry title="${%Extension}">
-					<f:textbox name="extension" value="${artifact.extension}"
-						default="jar" />
+					<f:textbox name="extension" value="${artifact.extension}" />
 				</f:entry>
 
-				<f:entry title="${%Target file name}"
-					description="(optional) if not defined the file name will be as resolved, can also include subdirectories">
+				<f:entry title="${%File}" description="the file to be deployed">
 					<f:textbox name="targetFileName" value="${artifact.targetFileName}" />
 				</f:entry>
 

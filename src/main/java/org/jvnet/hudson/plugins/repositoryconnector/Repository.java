@@ -22,14 +22,16 @@ public class Repository implements Serializable {
 	final private String id;
 	final private String user;
 	final private String password;
+	final private boolean isRepositoryManager;
 
 	@DataBoundConstructor
-	public Repository(String id, String type, String url, String user, String password) {
+	public Repository(String id, String type, String url, String user, String password, boolean repositoryManager) {
 		this.id = id == null ? "central" : id;
 		this.type = type == null ? "default" : type;
 		this.url = url;
 		this.user = user;
 		this.password = password;
+		this.isRepositoryManager = repositoryManager;
 	}
 
 	/**
@@ -55,7 +57,7 @@ public class Repository implements Serializable {
 
 	@Override
 	public String toString() {
-		return "[Repository id=" + id + ", type=" + type + ", url=" + url + "]";
+		return "[Repository id=" + id + ", type=" + type + ", url=" + url + ", isRepositoryManager=" + isRepositoryManager + "]";
 	}
 
 	/*
@@ -118,5 +120,12 @@ public class Repository implements Serializable {
 	 */
 	public String getPassword() {
 		return password;
+	}
+
+	/**
+	 * @return the isRepositoryManager
+	 */
+	public boolean isRepositoryManager() {
+		return isRepositoryManager;
 	}
 }

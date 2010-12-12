@@ -18,6 +18,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.maven.repository.internal.DefaultServiceLocator;
 import org.apache.maven.repository.internal.MavenRepositorySystemSession;
 import org.jvnet.hudson.plugins.repositoryconnector.Repository;
@@ -67,9 +68,8 @@ public class Aether {
 		this.snapshotChecksumPolicy = snapshotChecksumPolicy;
 	}
 
-	public Aether(Repository remoteRepository, File localRepository, PrintStream logger, boolean extendedLogging) {
+	public Aether(File localRepository, PrintStream logger, boolean extendedLogging) {
 		this.remoteRepositories = new ArrayList<Repository>();
-		this.remoteRepositories.add(remoteRepository);
 		this.localRepository = new LocalRepository(localRepository);
 		this.logger = logger;
 		this.extendedLogging = extendedLogging;
@@ -101,12 +101,18 @@ public class Aether {
 		CollectRequest collectRequest = new CollectRequest();
 		collectRequest.setRoot(dependency);
 
-		logger.println("define repos...");
 		for (Repository repo : remoteRepositories) {
-			logger.println("define repo: " + repo);
+			logger.println("INFO: define repo: " + repo);
 			RemoteRepository repoObj = new RemoteRepository(repo.getId(), repo.getType(), repo.getUrl());
 			RepositoryPolicy snapshotPolicy = new RepositoryPolicy(true, snapshotUpdatePolicy, snapshotChecksumPolicy);
 			RepositoryPolicy releasePolicy = new RepositoryPolicy(true, releaseUpdatePolicy, releaseChecksumPolicy);
+			final String user = repo.getUser();
+			if (!StringUtils.isBlank(user)) {
+				logger.println("INFO: set authentication for " + user);
+				Authentication authentication = new Authentication(user, repo.getPassword());
+				repoObj.setAuthentication(authentication);
+			}
+			repoObj.setRepositoryManager(repo.isRepositoryManager());
 			repoObj.setPolicy(true, snapshotPolicy);
 			repoObj.setPolicy(false, releasePolicy);
 			collectRequest.addRepository(repoObj);
@@ -131,19 +137,23 @@ public class Aether {
 		repositorySystem.install(session, installRequest);
 	}
 
-	public void deploy(Artifact artifact, Artifact pom, String remoteRepository) throws DeploymentException {
+	public void deploy(Repository repository, Artifact artifact, Artifact pom) throws DeploymentException {
 		RepositorySystemSession session = newSession();
 
-		final Repository repo = remoteRepositories.iterator().next();
-		RemoteRepository nexus = new RemoteRepository(repo.getId(), repo.getType(), repo.getUrl());
-		Authentication authentication = new Authentication("admin", "admin123");
-		nexus.setAuthentication(authentication);
+		RemoteRepository repoObj = new RemoteRepository(repository.getId(), repository.getType(), repository.getUrl());
+		repoObj.setRepositoryManager(repository.isRepositoryManager());
+		final String user = repository.getUser();
+		if (!StringUtils.isBlank(user)) {
+			logger.println("INFO: set authentication for " + user);
+			Authentication authentication = new Authentication(user, repository.getPassword());
+			repoObj.setAuthentication(authentication);
+		}
 
 		DeployRequest deployRequest = new DeployRequest();
-		deployRequest.addArtifact(artifact);// .addArtifact(pom);
-		deployRequest.setRepository(nexus);
+		deployRequest.addArtifact(artifact);
+		deployRequest.addArtifact(pom);
+		deployRequest.setRepository(repoObj);
 
 		repositorySystem.deploy(session, deployRequest);
 	}
-
 }
