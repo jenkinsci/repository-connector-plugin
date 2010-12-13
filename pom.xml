@@ -50,7 +50,7 @@ In future it will also allow to deploy artifacts to the same repo.</description>
 		<dependency>
 			<groupId>org.ops4j.pax.url</groupId>
 			<artifactId>pax-url-aether</artifactId>
-			<version>1.2.0</version>
+			<version>1.2.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.sonatype.aether</groupId>
