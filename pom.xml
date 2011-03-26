@@ -22,8 +22,7 @@
 
 	<!-- get every artifact through maven.glassfish.org, which proxies all the 
 		artifacts that we need -->
-	<description>Repository Connector adds a build step which allows to resolve artifacts from a maven repository like nexus. 
-In future it will also allow to deploy artifacts to the same repo.</description>
+	<description>Repository Connector adds a build step which allows to resolve artifacts from a maven repository like nexus.</description>
 	<url>http://wiki.hudson-ci.org/display/HUDSON/Repository+Connector+Plugin</url>
 	<inceptionYear>2010</inceptionYear>
 	<developers>
@@ -73,8 +72,8 @@ In future it will also allow to deploy artifacts to the same repo.</description>
 	</scm>
 	<distributionManagement>
 		<repository>
-			<id>java.net-m2-repository</id>
-			<url>http://maven.hudson-labs.org:8081/content/repositories/releases/</url>
+			<id>maven.jenkins-ci.org</id>
+			<url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
 		</repository>
 		<snapshotRepository>
 			<!-- prevent accidental deployment of SNAPSHOTS to repository -->
@@ -129,7 +128,7 @@ In future it will also allow to deploy artifacts to the same repo.</description>
 			<artifactId>wagon-file</artifactId>
 			<version>${wagonVersion}</version>
 		</dependency>
-		<dependency>	
+		<dependency>
 			<groupId>org.apache.maven.wagon</groupId>
 			<artifactId>wagon-http-lightweight</artifactId>
 			<version>${wagonVersion}</version>
