@@ -66,9 +66,9 @@
 		</plugins>
 	</build>
 	<scm>
-		<connection>scm:git:git://github.com/hudson/repository-connector-plugin.git</connection>
-		<developerConnection>scm:git:git@github.com:hudson/repository-connector-plugin.git</developerConnection>
-		<url>http://github.com/hudson/repository-connector-plugin</url>
+		<connection>scm:git:git://github.com/jenkinsci/repository-connector-plugin.git</connection>
+		<developerConnection>scm:git:git@github.com:jenkinsci/repository-connector-plugin.git</developerConnection>
+		<url>http://github.com/jenkinsci/repository-connector-plugin</url>
 	</scm>
 	<distributionManagement>
 		<repository>
