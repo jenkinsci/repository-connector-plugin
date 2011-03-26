@@ -20,7 +20,7 @@ import org.apache.maven.wagon.providers.http.LightweightHttpsWagon;
 import org.sonatype.aether.connector.wagon.WagonProvider;
 
 /**
- * Supports file, http and https
+ * Support for file, http and https
  */
 public class ManualWagonProvider implements WagonProvider {
 
@@ -32,11 +32,10 @@ public class ManualWagonProvider implements WagonProvider {
 		} else if ("https".equals(roleHint)) {
 			return new LightweightHttpsWagon();
 		}
-		return null;
+		throw new IllegalArgumentException("No wagon provider registered for protocol " + roleHint);
 	}
 
 	public void release(Wagon wagon) {
-
 	}
 
 }

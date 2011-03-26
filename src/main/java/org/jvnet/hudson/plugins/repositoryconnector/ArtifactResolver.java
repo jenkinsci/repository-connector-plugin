@@ -32,6 +32,7 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.sonatype.aether.collection.DependencyCollectionException;
 import org.sonatype.aether.repository.RepositoryPolicy;
 import org.sonatype.aether.resolution.ArtifactResolutionException;
+import org.sonatype.aether.resolution.DependencyResolutionException;
 
 /**
  * This builder allows to resolve artifacts from a repository and copy it to any
@@ -57,8 +58,8 @@ public class ArtifactResolver extends Builder implements Serializable {
 	public final String releaseChecksumPolicy;
 
 	@DataBoundConstructor
-	public ArtifactResolver(String targetDirectory, List<Artifact> artifacts, boolean failOnError, boolean enableRepoLogging, String snapshotUpdatePolicy,
-			String snapshotChecksumPolicy, String releaseUpdatePolicy, String releaseChecksumPolicy) {
+	public ArtifactResolver(String targetDirectory, List<Artifact> artifacts, boolean failOnError, boolean enableRepoLogging,
+			String snapshotUpdatePolicy, String snapshotChecksumPolicy, String releaseUpdatePolicy, String releaseChecksumPolicy) {
 		this.artifacts = artifacts != null ? artifacts : new ArrayList<Artifact>();
 		this.targetDirectory = StringUtils.isBlank(targetDirectory) ? DEFAULT_TARGET : targetDirectory;
 		this.failOnError = failOnError;
@@ -122,8 +123,8 @@ public class ArtifactResolver extends Builder implements Serializable {
 	private boolean download(AbstractBuild<?, ?> build, final PrintStream logger, final Collection<Repository> repositories, File localRepository) {
 		boolean hasError = false;
 
-		Aether aether = new Aether(repositories, localRepository, logger, enableRepoLogging, snapshotUpdatePolicy, snapshotChecksumPolicy, releaseUpdatePolicy,
-				releaseChecksumPolicy);
+		Aether aether = new Aether(repositories, localRepository, logger, enableRepoLogging, snapshotUpdatePolicy, snapshotChecksumPolicy,
+				releaseUpdatePolicy, releaseChecksumPolicy);
 
 		for (Artifact artifact : artifacts) {
 
@@ -131,8 +132,8 @@ public class ArtifactResolver extends Builder implements Serializable {
 
 				String version = artifact.getVersion();
 
-				AetherResult result = aether.resolve(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(), artifact.getExtension(),
-						version);
+				AetherResult result = aether.resolve(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(),
+						artifact.getExtension(), version);
 
 				List<File> resolvedFiles = result.getResolvedFiles();
 				for (File file : resolvedFiles) {
@@ -157,6 +158,8 @@ public class ArtifactResolver extends Builder implements Serializable {
 				hasError = logError("failed collecting dependency info for " + artifact, logger, e);
 			} catch (InterruptedException e) {
 				hasError = logError("interuppted failed to copy file for " + artifact, logger, e);
+			} catch (DependencyResolutionException e) {
+				hasError = logError("failed to resolve dependency for " + artifact, logger, e);
 			}
 
 		}

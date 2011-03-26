@@ -15,9 +15,9 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<aetherVersion>1.8</aetherVersion>
-		<mavenVersion>3.0</mavenVersion>
-		<wagonVersion>1.0-beta-6</wagonVersion>
+		<aetherVersion>1.11</aetherVersion>
+		<mavenVersion>3.0.2</mavenVersion>
+		<wagonVersion>1.0-beta-7</wagonVersion>
 	</properties>
 
 	<!-- get every artifact through maven.glassfish.org, which proxies all the 
@@ -84,11 +84,11 @@ In future it will also allow to deploy artifacts to the same repo.</description>
 	</distributionManagement>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.ops4j.pax.url</groupId>
-			<artifactId>pax-url-aether</artifactId>
-			<version>1.2.1</version>
-		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>org.ops4j.pax.url</groupId> -->
+		<!-- <artifactId>pax-url-aether</artifactId> -->
+		<!-- <version>1.2.5</version> -->
+		<!-- </dependency> -->
 		<dependency>
 			<groupId>org.sonatype.aether</groupId>
 			<artifactId>aether-api</artifactId>
@@ -106,6 +106,16 @@ In future it will also allow to deploy artifacts to the same repo.</description>
 		</dependency>
 		<dependency>
 			<groupId>org.sonatype.aether</groupId>
+			<artifactId>aether-connector-file</artifactId>
+			<version>${aetherVersion}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.sonatype.aether</groupId>
+			<artifactId>aether-connector-asynchttpclient</artifactId>
+			<version>${aetherVersion}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.sonatype.aether</groupId>
 			<artifactId>aether-connector-wagon</artifactId>
 			<version>${aetherVersion}</version>
 		</dependency>
@@ -119,7 +129,7 @@ In future it will also allow to deploy artifacts to the same repo.</description>
 			<artifactId>wagon-file</artifactId>
 			<version>${wagonVersion}</version>
 		</dependency>
-		<dependency>
+		<dependency>	
 			<groupId>org.apache.maven.wagon</groupId>
 			<artifactId>wagon-http-lightweight</artifactId>
 			<version>${wagonVersion}</version>

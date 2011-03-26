@@ -145,7 +145,7 @@ public class ArtifactDeployer extends Notifier implements Serializable {
 				org.sonatype.aether.artifact.Artifact artifact = new DefaultArtifact(groupId, artifactId, classifier, extension, version);
 				logger.println("INFO: deploy artifact " + aTmp);
 				artifact = artifact.setFile(targetFile);
-				org.sonatype.aether.artifact.Artifact pom = new SubArtifact(artifact, classifier, "pom");
+				org.sonatype.aether.artifact.Artifact pom = new SubArtifact(artifact, "", "pom");
 				final File tmpPom = getTempPom(aTmp);
 				pom = pom.setFile(tmpPom);
 
@@ -211,7 +211,7 @@ public class ArtifactDeployer extends Notifier implements Serializable {
 		}
 
 		public boolean isApplicable(Class<? extends AbstractProject> aClass) {
-			return true;
+			return false;
 		}
 
 		public String getDisplayName() {

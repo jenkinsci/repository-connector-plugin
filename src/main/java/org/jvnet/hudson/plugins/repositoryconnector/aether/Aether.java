@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.repository.internal.DefaultServiceLocator;
@@ -40,12 +41,15 @@ import org.sonatype.aether.repository.LocalRepository;
 import org.sonatype.aether.repository.RemoteRepository;
 import org.sonatype.aether.repository.RepositoryPolicy;
 import org.sonatype.aether.resolution.ArtifactResolutionException;
+import org.sonatype.aether.resolution.DependencyRequest;
+import org.sonatype.aether.resolution.DependencyResolutionException;
+import org.sonatype.aether.resolution.DependencyResult;
 import org.sonatype.aether.spi.connector.RepositoryConnectorFactory;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
 import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
 
 public class Aether {
-	private final Collection<Repository> remoteRepositories;
+	private final List<RemoteRepository> repositories = new ArrayList<RemoteRepository>();
 	private final RepositorySystem repositorySystem;
 	private final LocalRepository localRepository;
 	private final PrintStream logger;
@@ -55,25 +59,44 @@ public class Aether {
 	public String snapshotChecksumPolicy;
 	public String releaseChecksumPolicy;
 
-	public Aether(Collection<Repository> remoteRepositories, File localRepository, PrintStream logger, boolean extendedLogging, String snapshotUpdatePolicy,
-			String snapshotChecksumPolicy, String releaseUpdatePolicy, String releaseChecksumPolicy) {
-		this.remoteRepositories = remoteRepositories;
+	public Aether(Collection<Repository> remoteRepositories, File localRepository, PrintStream logger, boolean extendedLogging,
+			String snapshotUpdatePolicy, String snapshotChecksumPolicy, String releaseUpdatePolicy, String releaseChecksumPolicy) {
+		this.logger = logger;
 		this.repositorySystem = newManualSystem();
 		this.localRepository = new LocalRepository(localRepository);
-		this.logger = logger;
 		this.extendedLogging = extendedLogging;
 		this.releaseUpdatePolicy = releaseUpdatePolicy;
 		this.releaseChecksumPolicy = releaseChecksumPolicy;
 		this.snapshotUpdatePolicy = snapshotUpdatePolicy;
 		this.snapshotChecksumPolicy = snapshotChecksumPolicy;
+		this.initRemoteRepos(remoteRepositories);
 	}
 
 	public Aether(File localRepository, PrintStream logger, boolean extendedLogging) {
-		this.remoteRepositories = new ArrayList<Repository>();
-		this.localRepository = new LocalRepository(localRepository);
 		this.logger = logger;
+		this.localRepository = new LocalRepository(localRepository);
 		this.extendedLogging = extendedLogging;
 		this.repositorySystem = newManualSystem();
+	}
+
+	private void initRemoteRepos(Collection<Repository> remoteRepositories) {
+		for (Repository repo : remoteRepositories) {
+			logger.println("INFO: define repo: " + repo);
+			RemoteRepository repoObj = new RemoteRepository(repo.getId(), repo.getType(), repo.getUrl());
+			RepositoryPolicy snapshotPolicy = new RepositoryPolicy(true, snapshotUpdatePolicy, snapshotChecksumPolicy);
+			RepositoryPolicy releasePolicy = new RepositoryPolicy(true, releaseUpdatePolicy, releaseChecksumPolicy);
+			final String user = repo.getUser();
+			if (!StringUtils.isBlank(user)) {
+				logger.println("INFO: set authentication for " + user);
+				Authentication authentication = new Authentication(user, repo.getPassword());
+				repoObj.setAuthentication(authentication);
+			}
+			repoObj.setRepositoryManager(repo.isRepositoryManager());
+			repoObj.setRepositoryManager(false);
+			repoObj.setPolicy(true, snapshotPolicy);
+			repoObj.setPolicy(false, releasePolicy);
+			repositories.add(repoObj);
+		}
 	}
 
 	private RepositorySystem newManualSystem() {
@@ -93,34 +116,19 @@ public class Aether {
 		return session;
 	}
 
-	public AetherResult resolve(String groupId, String artifactId, String classifier, String extension, String version) throws DependencyCollectionException,
-			ArtifactResolutionException {
+	public AetherResult resolve(String groupId, String artifactId, String classifier, String extension, String version)
+			throws DependencyCollectionException, ArtifactResolutionException, DependencyResolutionException {
 		RepositorySystemSession session = newSession();
 		Dependency dependency = new Dependency(new DefaultArtifact(groupId, artifactId, classifier, extension, version), "provided");
 
-		CollectRequest collectRequest = new CollectRequest();
-		collectRequest.setRoot(dependency);
+		CollectRequest collectRequest = new CollectRequest(dependency, repositories);
 
-		for (Repository repo : remoteRepositories) {
-			logger.println("INFO: define repo: " + repo);
-			RemoteRepository repoObj = new RemoteRepository(repo.getId(), repo.getType(), repo.getUrl());
-			RepositoryPolicy snapshotPolicy = new RepositoryPolicy(true, snapshotUpdatePolicy, snapshotChecksumPolicy);
-			RepositoryPolicy releasePolicy = new RepositoryPolicy(true, releaseUpdatePolicy, releaseChecksumPolicy);
-			final String user = repo.getUser();
-			if (!StringUtils.isBlank(user)) {
-				logger.println("INFO: set authentication for " + user);
-				Authentication authentication = new Authentication(user, repo.getPassword());
-				repoObj.setAuthentication(authentication);
-			}
-			repoObj.setRepositoryManager(repo.isRepositoryManager());
-			repoObj.setPolicy(true, snapshotPolicy);
-			repoObj.setPolicy(false, releasePolicy);
-			collectRequest.addRepository(repoObj);
-		}
+		// collectRequest.setRoot(dependency);
 
 		DependencyNode rootNode = repositorySystem.collectDependencies(session, collectRequest).getRoot();
 
-		repositorySystem.resolveDependencies(session, rootNode, new ExcludeTranisitiveDependencyFilter());
+		DependencyRequest dependencyRequest = new DependencyRequest(rootNode, new ExcludeTranisitiveDependencyFilter());
+		DependencyResult resolvedDependencies = repositorySystem.resolveDependencies(session, dependencyRequest);
 
 		PreorderNodeListGenerator nlg = new PreorderNodeListGenerator();
 		rootNode.accept(nlg);
