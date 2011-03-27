@@ -66,9 +66,12 @@
 		</plugins>
 	</build>
 	<scm>
-		<connection>scm:git:https://github.com/jenkinsci/repository-connector-plugin.git</connection>
-		<developerConnection>scm:git:https://github.com/jenkinsci/repository-connector-plugin.git</developerConnection>
-		<url>http://github.com/jenkinsci/repository-connector-plugin</url>
+		<!-- <connection>scm:git:https://github.com/jenkinsci/repository-connector-plugin.git</connection> -->
+		<!-- <developerConnection>scm:git:https://github.com/jenkinsci/repository-connector-plugin.git</developerConnection> -->
+		<!-- <url>http://github.com/jenkinsci/repository-connector-plugin</url> -->
+		<connection>scm:git:ssh://github.com/jenkinsci/repository-connector-plugin.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/repository-connector-plugin.git</developerConnection>
+		<url>https://github.com/jenkinsci/repository-connector-plugin</url>
 	</scm>
 	<distributionManagement>
 		<repository>
