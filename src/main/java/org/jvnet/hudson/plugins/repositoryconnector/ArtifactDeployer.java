@@ -123,11 +123,11 @@ public class ArtifactDeployer extends Notifier implements Serializable {
 		try {
 			for (Artifact a : artifacts) {
 
-				final String version = resolveVariable(variableResolver, a.getVersion());
-				final String classifier = resolveVariable(variableResolver, a.getClassifier());
-				final String artifactId = resolveVariable(variableResolver, a.getArtifactId());
-				final String groupId = resolveVariable(variableResolver, a.getGroupId());
-				final String packaging = resolveVariable(variableResolver, a.getExtension());
+				final String version = Utility.resolveVariable(variableResolver, a.getVersion());
+				final String classifier = Utility.resolveVariable(variableResolver, a.getClassifier());
+				final String artifactId = Utility.resolveVariable(variableResolver, a.getArtifactId());
+				final String groupId = Utility.resolveVariable(variableResolver, a.getGroupId());
+				final String packaging = Utility.resolveVariable(variableResolver, a.getExtension());
 
 				Artifact aTmp = new Artifact(groupId, artifactId, classifier, version, packaging, a.getTargetFileName());
 
@@ -154,8 +154,8 @@ public class ArtifactDeployer extends Notifier implements Serializable {
 				logger.println("INFO: deploy to repository " + repo);
 				if (isOverwriteSecurity()) {
 					logger.println("INFO: define repo access security...");
-					String tmpuser = resolveVariable(variableResolver, overwriteSecurity.user);
-					String tmppwd = resolveVariable(variableResolver, overwriteSecurity.password);
+					String tmpuser = Utility.resolveVariable(variableResolver, overwriteSecurity.user);
+					String tmppwd = Utility.resolveVariable(variableResolver, overwriteSecurity.password);
 					repo = new Repository(repo.getId(), repo.getType(), repo.getUrl(), tmpuser, tmppwd, repo.isRepositoryManager());
 				}
 
@@ -177,18 +177,6 @@ public class ArtifactDeployer extends Notifier implements Serializable {
 			return logError("Exception: ", logger, e);
 		}
 		return true;
-	}
-
-	private String resolveVariable(VariableResolver<String> variableResolver, String potentalVaraible) {
-		String value = potentalVaraible;
-		if (potentalVaraible != null) {
-			if (potentalVaraible.startsWith("${") && potentalVaraible.endsWith("}")) {
-				value = potentalVaraible.substring(2, potentalVaraible.length() - 1);
-				value = variableResolver.resolve(value);
-				log.log(Level.FINE, "resolve " + potentalVaraible + " to " + value);
-			}
-		}
-		return value;
 	}
 
 	private boolean logError(String msg, final PrintStream logger, Exception e) {

@@ -8,6 +8,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
+import hudson.util.VariableResolver;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,8 +59,8 @@ public class ArtifactResolver extends Builder implements Serializable {
 	public final String releaseChecksumPolicy;
 
 	@DataBoundConstructor
-	public ArtifactResolver(String targetDirectory, List<Artifact> artifacts, boolean failOnError, boolean enableRepoLogging,
-			String snapshotUpdatePolicy, String snapshotChecksumPolicy, String releaseUpdatePolicy, String releaseChecksumPolicy) {
+	public ArtifactResolver(String targetDirectory, List<Artifact> artifacts, boolean failOnError, boolean enableRepoLogging, String snapshotUpdatePolicy,
+			String snapshotChecksumPolicy, String releaseUpdatePolicy, String releaseChecksumPolicy) {
 		this.artifacts = artifacts != null ? artifacts : new ArrayList<Artifact>();
 		this.targetDirectory = StringUtils.isBlank(targetDirectory) ? DEFAULT_TARGET : targetDirectory;
 		this.failOnError = failOnError;
@@ -123,22 +124,28 @@ public class ArtifactResolver extends Builder implements Serializable {
 	private boolean download(AbstractBuild<?, ?> build, final PrintStream logger, final Collection<Repository> repositories, File localRepository) {
 		boolean hasError = false;
 
-		Aether aether = new Aether(repositories, localRepository, logger, enableRepoLogging, snapshotUpdatePolicy, snapshotChecksumPolicy,
-				releaseUpdatePolicy, releaseChecksumPolicy);
+		final VariableResolver<String> variableResolver = build.getBuildVariableResolver();
 
-		for (Artifact artifact : artifacts) {
+		Aether aether = new Aether(repositories, localRepository, logger, enableRepoLogging, snapshotUpdatePolicy, snapshotChecksumPolicy, releaseUpdatePolicy,
+				releaseChecksumPolicy);
+
+		for (Artifact a : artifacts) {
+
+			final String version = Utility.resolveVariable(variableResolver, a.getVersion());
+			final String classifier = Utility.resolveVariable(variableResolver, a.getClassifier());
+			final String artifactId = Utility.resolveVariable(variableResolver, a.getArtifactId());
+			final String groupId = Utility.resolveVariable(variableResolver, a.getGroupId());
+			final String extension = Utility.resolveVariable(variableResolver, a.getExtension());
+			final String targetFileName = Utility.resolveVariable(variableResolver, a.getTargetFileName());
 
 			try {
 
-				String version = artifact.getVersion();
-
-				AetherResult result = aether.resolve(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(),
-						artifact.getExtension(), version);
+				AetherResult result = aether.resolve(groupId, artifactId, classifier, extension, version);
 
 				List<File> resolvedFiles = result.getResolvedFiles();
 				for (File file : resolvedFiles) {
 
-					String fileName = StringUtils.isBlank(artifact.getTargetFileName()) ? file.getName() : artifact.getTargetFileName();
+					String fileName = StringUtils.isBlank(targetFileName) ? file.getName() : targetFileName;
 					FilePath source = new FilePath(file);
 					FilePath target = new FilePath(build.getWorkspace(), getTargetDirectory() + "/" + fileName);
 					boolean wasDeleted = target.delete();
@@ -151,15 +158,15 @@ public class ArtifactResolver extends Builder implements Serializable {
 				}
 
 			} catch (DependencyCollectionException e) {
-				hasError = logError("failed collecting dependency info for " + artifact, logger, e);
+				hasError = logError("failed collecting dependency info for " + a, logger, e);
 			} catch (ArtifactResolutionException e) {
-				hasError = logError("failed to resolve artifact for " + artifact, logger, e);
+				hasError = logError("failed to resolve artifact for " + a, logger, e);
 			} catch (IOException e) {
-				hasError = logError("failed collecting dependency info for " + artifact, logger, e);
+				hasError = logError("failed collecting dependency info for " + a, logger, e);
 			} catch (InterruptedException e) {
-				hasError = logError("interuppted failed to copy file for " + artifact, logger, e);
+				hasError = logError("interuppted failed to copy file for " + a, logger, e);
 			} catch (DependencyResolutionException e) {
-				hasError = logError("failed to resolve dependency for " + artifact, logger, e);
+				hasError = logError("failed to resolve dependency for " + a, logger, e);
 			}
 
 		}
@@ -202,7 +209,7 @@ public class ArtifactResolver extends Builder implements Serializable {
 		}
 
 		public String getDisplayName() {
-			return "Artifact Resolver (Repository Connector)";
+			return "Artifact Resolver";
 		}
 
 		@Override
