@@ -19,8 +19,7 @@
 		<wagonVersion>1.0-beta-7</wagonVersion>
 	</properties>
 
-	<!-- get every artifact through maven.glassfish.org, which proxies all the 
-		artifacts that we need -->
+	<!-- get every artifact through maven.glassfish.org, which proxies all the artifacts that we need -->
 	<description>Repository Connector adds a build step which allows to resolve artifacts from a maven repository like nexus.</description>
 	<url>https://wiki.jenkins-ci.org/display/JENKINS/Repository+Connector+Plugin</url>
 	<inceptionYear>2010</inceptionYear>
@@ -150,6 +149,17 @@
 					<artifactId>xercesMinimal</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>token-macro</artifactId>
+			<version>1.5.1</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.10</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>
