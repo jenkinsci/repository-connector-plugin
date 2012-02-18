@@ -9,7 +9,7 @@
 
 	<artifactId>repository-connector</artifactId>
 	<name>Repository Connector</name>
-	<version>0.8.2-SNAPSHOT</version>
+	<version>0.8.2</version>
 	<packaging>hpi</packaging>
 
 	<properties>
