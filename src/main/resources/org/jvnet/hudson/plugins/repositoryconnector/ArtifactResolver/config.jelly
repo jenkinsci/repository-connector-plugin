@@ -2,7 +2,7 @@
 	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
 	<f:entry title="${%Fail on error}"
-		description="should the build brake if an atrtifact resolution fails?">
+		description="should the build break if an atrtifact resolution fails?">
 		<f:checkbox name="failOnError" checked="${instance.failOnError()}" />
 	</f:entry>
 
