@@ -6,3 +6,5 @@
 /.project
 /.settings
 /bin
+nb-configuration.xml
+nbactions.xml
