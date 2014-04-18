@@ -44,9 +44,13 @@ import org.sonatype.aether.resolution.ArtifactResolutionException;
 import org.sonatype.aether.resolution.DependencyRequest;
 import org.sonatype.aether.resolution.DependencyResolutionException;
 import org.sonatype.aether.resolution.DependencyResult;
+import org.sonatype.aether.resolution.VersionRangeRequest;
+import org.sonatype.aether.resolution.VersionRangeResolutionException;
+import org.sonatype.aether.resolution.VersionRangeResult;
 import org.sonatype.aether.spi.connector.RepositoryConnectorFactory;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
 import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
+import org.sonatype.aether.version.Version;
 
 public class Aether {
 	private final List<RemoteRepository> repositories = new ArrayList<RemoteRepository>();
@@ -134,6 +138,20 @@ public class Aether {
 		rootNode.accept(nlg);
 
 		return new AetherResult(rootNode, nlg.getFiles());
+	}
+
+	public List<Version> resolveVersions(String groupId, String artifactId, String classifier, String extension)
+			throws VersionRangeResolutionException {
+		RepositorySystemSession session = newSession();
+		Artifact artifact = new DefaultArtifact(groupId, artifactId, classifier, extension, "[0,)");
+
+                VersionRangeRequest rangeRequest = new VersionRangeRequest();
+                rangeRequest.setArtifact( artifact );
+                rangeRequest.setRepositories( repositories );
+
+                VersionRangeResult rangeResult = repositorySystem.resolveVersionRange( session, rangeRequest );
+
+                return rangeResult.getVersions();
 	}
 
 	public void install(Artifact artifact, Artifact pom) throws InstallationException {
