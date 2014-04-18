@@ -22,9 +22,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.inject.Inject;
 
 import net.sf.json.JSONObject;
 
@@ -87,16 +89,11 @@ public class ArtifactDeployer extends Notifier implements Serializable {
     }
 
     public Collection<Repository> getRepos() {
-        return getResolverDescriptor().getRepos();
+        return RepositoryConfiguration.get().getRepos();
     }
 
     private Repository getRepoById(String id) {
-        for (Repository repo : getRepos()) {
-            if (repo.getId().equals(id)) {
-                return repo;
-            }
-        }
-        return null;
+        return RepositoryConfiguration.get().getRepositoryMap().get(id);
     }
 
     /*
@@ -107,16 +104,11 @@ public class ArtifactDeployer extends Notifier implements Serializable {
     }
 
     @Override
-    public DescriptorImpl getDescriptor() {
-        return (DescriptorImpl) super.getDescriptor();
-    }
-
-    @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
 
         final PrintStream logger = listener.getLogger();
 
-        Aether aether = new Aether(new File(getResolverDescriptor().getLocalRepository()), logger, enableRepoLogging);
+        Aether aether = new Aether(new File(RepositoryConfiguration.get().getLocalRepository()), logger, enableRepoLogging);
 
         try {
             for (Artifact a : artifacts) {
@@ -184,33 +176,29 @@ public class ArtifactDeployer extends Notifier implements Serializable {
         return false;
     }
 
-    private ArtifactResolver.DescriptorImpl getResolverDescriptor() {
-        final ArtifactResolver.DescriptorImpl resolverDescriptor = (ArtifactResolver.DescriptorImpl) Hudson.getInstance().getBuilder("ArtifactResolver");
-        return resolverDescriptor;
+    public DescriptorImpl getDescriptor() {
+        return DESCRIPTOR;
     }
 
     @Extension
+    public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
-
         public DescriptorImpl() {
-            // load();
         }
 
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
+            // TODO: This disables the extension => change to true
             return false;
         }
 
         public String getDisplayName() {
-            return "Repository Artifact Deployer";
+            return "Artifact Deployer";
         }
 
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-
-            // save();
             return true;
         }
-
     }
 
     private File getTempPom(Artifact artifact) {

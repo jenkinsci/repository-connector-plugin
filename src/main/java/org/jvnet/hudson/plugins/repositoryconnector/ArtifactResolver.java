@@ -6,8 +6,10 @@ import hudson.Launcher;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.Descriptor;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
+import hudson.tasks.Publisher;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,18 +17,20 @@ import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.inject.Inject;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.tokenmacro.TokenMacro;
+import static org.jvnet.hudson.plugins.repositoryconnector.ArtifactDeployer.log;
 import org.jvnet.hudson.plugins.repositoryconnector.aether.Aether;
 import org.jvnet.hudson.plugins.repositoryconnector.aether.AetherResult;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -57,7 +61,7 @@ public class ArtifactResolver extends Builder implements Serializable {
     public final String releaseUpdatePolicy;
     public final String snapshotChecksumPolicy;
     public final String releaseChecksumPolicy;
-
+    
     @DataBoundConstructor
     public ArtifactResolver(String targetDirectory, List<Artifact> artifacts, boolean failOnError, boolean enableRepoLogging, String snapshotUpdatePolicy,
             String snapshotChecksumPolicy, String releaseUpdatePolicy, String releaseChecksumPolicy) {
@@ -93,7 +97,7 @@ public class ArtifactResolver extends Builder implements Serializable {
     }
 
     File getLocalRepoPath() {
-        String localRepositoryLocation = getDescriptor().getLocalRepository();
+        String localRepositoryLocation = RepositoryConfiguration.get().getLocalRepository();
         // default to local repo within java temp dir
         if (StringUtils.isBlank(localRepositoryLocation)) {
             localRepositoryLocation = System.getProperty("java.io.tmpdir") + "/repositoryconnector-repo";
@@ -105,7 +109,7 @@ public class ArtifactResolver extends Builder implements Serializable {
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
 
         final PrintStream logger = listener.getLogger();
-        final Collection<Repository> repositories = getDescriptor().getRepos();
+        final Collection<Repository> repositories = RepositoryConfiguration.get().getRepos();
 
         File localRepo = getLocalRepoPath();
         if (!localRepo.exists()) {
@@ -181,28 +185,15 @@ public class ArtifactResolver extends Builder implements Serializable {
         return true;
     }
 
-    @Override
     public DescriptorImpl getDescriptor() {
-        return (DescriptorImpl) super.getDescriptor();
+        return DESCRIPTOR;
     }
 
     @Extension
+    public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
 
-        private static final List<Repository> DEFAULT_REPOS = new ArrayList<Repository>();
-        static {
-            DEFAULT_REPOS.add(new Repository("central", "default", "http://repo1.maven.org/maven2", null, null, false));
-        }
-
-        private Set<Repository> repos = new HashSet<Repository>();
-
-        private String localRepository = "";
-
         public DescriptorImpl() {
-            load();
-            if (repos.isEmpty()) {
-                repos.addAll(DEFAULT_REPOS);
-            }
         }
 
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
@@ -214,53 +205,8 @@ public class ArtifactResolver extends Builder implements Serializable {
         }
 
         @Override
-        public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-
-            localRepository = formData.getString("localRepository");
-
-            repos.clear();
-
-            final Object repoJson = formData.get("repos");
-            if (repoJson instanceof JSONArray) {
-                final JSONArray jsonArray = (JSONArray) repoJson;
-                for (Object object : jsonArray) {
-                    addRepo(req, (JSONObject) object);
-                }
-            } else {
-                // there might be only a single repo config
-                addRepo(req, (JSONObject) repoJson);
-            }
-
-            if (repos.isEmpty()) {
-                repos.addAll(DEFAULT_REPOS);
-            }
-
-            save();
+        public boolean configure(StaplerRequest req, JSONObject formData) throws Descriptor.FormException {
             return true;
-        }
-
-        /**
-         * adds a dynamic permission configuration with the data extracted form the jsonObject.
-         * 
-         */
-        private void addRepo(StaplerRequest req, JSONObject jsonObject) {
-            final Repository repo = req.bindJSON(Repository.class, jsonObject);
-            if (repo != null) {
-                if (!StringUtils.isBlank(repo.getUrl())) {
-                    repos.add(repo);
-                }
-            }
-        }
-
-        public String getLocalRepository() {
-            return localRepository;
-        }
-
-        public Collection<Repository> getRepos() {
-            List<Repository> r = new ArrayList<Repository>();
-            r.addAll(repos);
-            Collections.sort(r);
-            return r;
         }
     }
 }
