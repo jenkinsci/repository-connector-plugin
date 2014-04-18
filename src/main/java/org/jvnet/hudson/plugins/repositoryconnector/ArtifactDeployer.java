@@ -20,6 +20,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -85,7 +86,7 @@ public class ArtifactDeployer extends Notifier implements Serializable {
         return null;
     }
 
-    public Set<Repository> getRepos() {
+    public Collection<Repository> getRepos() {
         return getResolverDescriptor().getRepos();
     }
 

@@ -15,6 +15,7 @@ import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -255,9 +256,11 @@ public class ArtifactResolver extends Builder implements Serializable {
             return localRepository;
         }
 
-        public Set<Repository> getRepos() {
-            return repos;
+        public Collection<Repository> getRepos() {
+            List<Repository> r = new ArrayList<Repository>();
+            r.addAll(repos);
+            Collections.sort(r);
+            return r;
         }
-
     }
 }
