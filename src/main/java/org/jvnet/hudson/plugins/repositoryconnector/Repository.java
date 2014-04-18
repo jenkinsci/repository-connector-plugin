@@ -13,7 +13,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
  * @author domi
  * 
  */
-public class Repository implements Serializable {
+public class Repository implements Serializable, Comparable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -128,4 +128,8 @@ public class Repository implements Serializable {
 	public boolean isRepositoryManager() {
 		return isRepositoryManager;
 	}
+
+        public int compareTo(Object o) {
+            return id.compareTo(((Repository)o).getId());
+        }
 }
