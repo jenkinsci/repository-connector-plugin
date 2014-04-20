@@ -1,4 +1,4 @@
 <div>
-	The aether plugin allows you to resolve artifacts on a maven
-	repository.
+    The repository connector plugin allows you to resolve artifacts from or 
+    deploy artifacts to a Maven	repository.
 </div>
