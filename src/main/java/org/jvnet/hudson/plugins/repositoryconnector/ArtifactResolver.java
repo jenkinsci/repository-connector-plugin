@@ -201,7 +201,7 @@ public class ArtifactResolver extends Builder implements Serializable {
         }
 
         public String getDisplayName() {
-            return "Artifact Resolver";
+            return Messages.ArtifactResolver();
         }
 
         @Override

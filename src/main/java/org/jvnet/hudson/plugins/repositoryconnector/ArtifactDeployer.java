@@ -192,7 +192,7 @@ public class ArtifactDeployer extends Notifier implements Serializable {
         }
 
         public String getDisplayName() {
-            return "Artifact Deployer";
+            return Messages.ArtifactDeployer();
         }
 
         @Override

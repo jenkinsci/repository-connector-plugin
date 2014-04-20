@@ -1,13 +1,13 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
 	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-	<f:entry title="${%Enable repository logging}" description="enables logging for repository and transfer">
+	<f:entry title="${%EnableRepositoryLogging}" description="${%EnableRepositoryLoggingDescription}">
 		<f:checkbox name="enableRepoLogging" checked="${instance.enableRepoLogging()}" />
 	</f:entry>
 
 	<f:entry title="${%Repository}">
 		<select class="setting-input" name="repoId"
-			description="Select the repository to deploy the artifact to">
+			description="${%RepositoryDescription}">
 			<j:forEach var="repo" items="${instance.repos}">
 				<f:option selected="${instance.repoId==repo.id}" value="${repo.id}">${repo.id}
 					- ${repo.url}</f:option>
@@ -15,9 +15,9 @@
 		</select>
 	</f:entry>
 
-	<f:entry title="${%Snapshot Repository}">
+	<f:entry title="${%SnapshotRepository}">
 		<select class="setting-input" name="snapshotRepoId"
-			description="Select the snapshot repository to deploy the artifact to">
+			description="${%SnapshotRepositoryDescription}">
 			<j:forEach var="repo" items="${instance.repos}">
 				<f:option selected="${instance.snapshotRepoId==repo.id}"
 					value="${repo.id}">${repo.id} - ${repo.url}</f:option>
@@ -26,7 +26,7 @@
 	</f:entry>
 
 
-	<f:optionalBlock name="overwriteSecurity" title="${%Overwrite permissions}"
+	<f:optionalBlock name="overwriteSecurity" title="${%OverwritePermissions}"
 		checked="${instance.isOverwriteSecurity()}" help="/plugin/repository-connector/help-permissions.html">
 		<f:entry title="${%User}">
 			<f:textbox name="user" value="${instance.getUserName()}" />
@@ -62,13 +62,13 @@
 					<f:textbox name="extension" value="${artifact.extension}" />
 				</f:entry>
 
-				<f:entry title="${%File}" description="the file to be deployed">
+				<f:entry title="${%File}" description="${%FileDescription}">
 					<f:textbox name="targetFileName" value="${artifact.targetFileName}" />
 				</f:entry>
 
 				<f:entry>
 					<div align="right">
-						<input type="button" value="${%Add artifact}" class="repeatable-add show-if-last" />
+						<input type="button" value="${%AddArtifact}" class="repeatable-add show-if-last" />
 						<input type="button" value="${%Delete}"
 							class="repeatable-delete show-if-not-only" style="margin-left: 1em;" />
 					</div>

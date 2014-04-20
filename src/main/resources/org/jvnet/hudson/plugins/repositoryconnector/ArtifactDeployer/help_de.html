@@ -1,0 +1,18 @@
+<div>
+    <p>
+        Artefakte können in ein Verzeichnis hochgeladen werden, z.B. Nexus.
+        Dieser nachgelagerte Build Schritt kann beliebig viele Artefakte hochladen, einfach in dem man weitere Artefakte hinzufügt.
+        Das POM zum hochladen wird automatisch erzeugt. 
+        Wenn in der Versionsnummer der Begriff 'SNAPSHOT' vorkommt wird das Verzsichnis für Zwischenversionen verwendet, um die Artefakte abzulegen. Im anderen Fall wird das Versionsverzeichnis angenommen.
+    </p>
+    <ul>
+        <li>Gruppen Id: Die Gruppen Id ist gewöhnlich eindeutig innerhalb eines Projektes oder einer Organisation.</li>
+        <li>Artefakt Id: Die Artefakt Id ist gewöhnlich der Name des Projektes.</li>
+        <li>Version: Die Version des Artefakts, welches hochgeladen werden soll. </li>
+        <li>Klassifzierung: Hierbei handelt es sich um einen beliebigen text, der, falls vorhanden, an den Artefaktnamen angehangen wird, unmittelbar nach der Versionsnummer. Die Klassifizierung wird oft dazu verwendet ein weiteres Artefakt aus dem Quellprojekt zu unterscheiden (z.B. 'javadoc' oder 'sources').</li>
+        <li>Erweiterung: Die Erweiterung des Artefakts, welches heruntergeladen wird. Wichtig: dabei handelt es sich nicht immer um die Maven 'Paketierung', obwohl dies im Falle 'jar' gleich ist.</li>
+        <li>Datei: Datei die hochgeladen werden soll. Hier kann man auch Unterverzeichnisse angeben.</li>
+    </ul>
+    <p>Die Syntax ${PARAMETERNAME} kann dazu verwendet werden Parameter für jedes der Felder anzugeben, um z.B. die Versionsnummer dynamisch für ein Artefakt zu vergeben.
+    </p>
+</div>
