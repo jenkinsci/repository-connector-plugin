@@ -63,6 +63,11 @@ public class Aether {
 	public String snapshotChecksumPolicy;
 	public String releaseChecksumPolicy;
 
+	public Aether(Collection<Repository> remoteRepositories, File localRepository) {
+            this(remoteRepositories, localRepository, null, false, RepositoryPolicy.UPDATE_POLICY_NEVER, 
+                    RepositoryPolicy.CHECKSUM_POLICY_IGNORE, RepositoryPolicy.UPDATE_POLICY_NEVER, RepositoryPolicy.CHECKSUM_POLICY_IGNORE);
+        }
+
 	public Aether(Collection<Repository> remoteRepositories, File localRepository, PrintStream logger, boolean extendedLogging,
 			String snapshotUpdatePolicy, String snapshotChecksumPolicy, String releaseUpdatePolicy, String releaseChecksumPolicy) {
 		this.logger = logger;
@@ -85,18 +90,21 @@ public class Aether {
 
 	private void initRemoteRepos(Collection<Repository> remoteRepositories) {
 		for (Repository repo : remoteRepositories) {
-			logger.println("INFO: define repo: " + repo);
+                        if (logger != null) {
+                            logger.println("INFO: define repo: " + repo);
+                        }
 			RemoteRepository repoObj = new RemoteRepository(repo.getId(), repo.getType(), repo.getUrl());
 			RepositoryPolicy snapshotPolicy = new RepositoryPolicy(true, snapshotUpdatePolicy, snapshotChecksumPolicy);
 			RepositoryPolicy releasePolicy = new RepositoryPolicy(true, releaseUpdatePolicy, releaseChecksumPolicy);
 			final String user = repo.getUser();
 			if (!StringUtils.isBlank(user)) {
-				logger.println("INFO: set authentication for " + user);
+                                if (logger != null) {
+                                    logger.println("INFO: set authentication for " + user);
+                                }
 				Authentication authentication = new Authentication(user, repo.getPassword());
 				repoObj.setAuthentication(authentication);
 			}
 			repoObj.setRepositoryManager(repo.isRepositoryManager());
-			repoObj.setRepositoryManager(false);
 			repoObj.setPolicy(true, snapshotPolicy);
 			repoObj.setPolicy(false, releasePolicy);
 			repositories.add(repoObj);
@@ -113,7 +121,7 @@ public class Aether {
 	private RepositorySystemSession newSession() {
 		MavenRepositorySystemSession session = new MavenRepositorySystemSession();
 		session.setLocalRepositoryManager(repositorySystem.newLocalRepositoryManager(localRepository));
-		if (extendedLogging) {
+		if (extendedLogging && logger != null) {
 			session.setTransferListener(new ConsoleTransferListener(logger));
 			session.setRepositoryListener(new ConsoleRepositoryListener(logger));
 		}
@@ -140,10 +148,10 @@ public class Aether {
 		return new AetherResult(rootNode, nlg.getFiles());
 	}
 
-	public List<Version> resolveVersions(String groupId, String artifactId, String classifier, String extension)
+	public List<Version> resolveVersions(String groupId, String artifactId)
 			throws VersionRangeResolutionException {
 		RepositorySystemSession session = newSession();
-		Artifact artifact = new DefaultArtifact(groupId, artifactId, classifier, extension, "[0,)");
+		Artifact artifact = new DefaultArtifact(groupId, artifactId, null, null, "[0,)");
 
                 VersionRangeRequest rangeRequest = new VersionRangeRequest();
                 rangeRequest.setArtifact( artifact );
@@ -170,7 +178,9 @@ public class Aether {
 		repoObj.setRepositoryManager(repository.isRepositoryManager());
 		final String user = repository.getUser();
 		if (!StringUtils.isBlank(user)) {
-			logger.println("INFO: set authentication for " + user);
+                        if (logger != null) {
+                            logger.println("INFO: set authentication for " + user);
+                        }
 			Authentication authentication = new Authentication(user, repository.getPassword());
 			repoObj.setAuthentication(authentication);
 		}
