@@ -9,7 +9,6 @@ import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
-import hudson.tasks.Publisher;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,20 +16,13 @@ import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.inject.Inject;
-
-import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.tokenmacro.TokenMacro;
-import static org.jvnet.hudson.plugins.repositoryconnector.ArtifactDeployer.log;
 import org.jvnet.hudson.plugins.repositoryconnector.aether.Aether;
 import org.jvnet.hudson.plugins.repositoryconnector.aether.AetherResult;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -49,7 +41,7 @@ public class ArtifactResolver extends Builder implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    static Logger log = Logger.getLogger(ArtifactResolver.class.getName());
+    private static Logger log = Logger.getLogger(ArtifactResolver.class.getName());
 
     private static final String DEFAULT_TARGET = "target";
 
