@@ -84,7 +84,7 @@ public class RepositoryConfiguration extends GlobalConfiguration implements Seri
         final Repository repo = req.bindJSON(Repository.class, jsonObject);
         if (repo != null) {
             if (!StringUtils.isBlank(repo.getUrl())) {
-                log.info("Adding repo " + repo);
+                log.fine("Adding repo " + repo);
                 repos.put(repo.getId(), repo);
             }
             else {
@@ -101,11 +101,11 @@ public class RepositoryConfiguration extends GlobalConfiguration implements Seri
         List<Repository> r = new ArrayList<Repository>();
         r.addAll(repos.values());
         Collections.sort(r);
-        log.info("repos " + r);
+        log.fine("repos=" + r);
         return r;
     }
     public Map<String, Repository> getRepositoryMap() {
-        log.info("repos " + repos);
+        log.fine("reposmap=" + repos);
         return repos;
     }
 
