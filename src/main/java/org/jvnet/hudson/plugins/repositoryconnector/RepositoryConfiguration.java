@@ -2,6 +2,7 @@ package org.jvnet.hudson.plugins.repositoryconnector;
 
 import hudson.Extension;
 import hudson.model.Descriptor;
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -96,6 +97,21 @@ public class RepositoryConfiguration extends GlobalConfiguration implements Seri
     public String getLocalRepository() {
         return localRepository;
     }
+    
+    public File getLocalRepoPath() {
+        String localRepositoryLocation = localRepository;
+        // default to local repo within java temp dir
+        if (StringUtils.isBlank(localRepositoryLocation)) {
+            localRepositoryLocation = System.getProperty("java.io.tmpdir") + "/repositoryconnector-repo";
+        }
+        File result = new File(localRepositoryLocation);
+        if (!result.exists()) {
+            log.fine("create local repo directory: " + result.getAbsolutePath());
+            result.mkdirs();
+        }
+        return result;
+    }
+
 
     public Collection<Repository> getRepos() {
         List<Repository> r = new ArrayList<Repository>();

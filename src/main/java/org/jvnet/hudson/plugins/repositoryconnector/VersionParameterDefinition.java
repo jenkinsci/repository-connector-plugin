@@ -67,7 +67,8 @@ public class VersionParameterDefinition extends
         Repository r = DESCRIPTOR.getRepo(repoid);
         List<String> versionStrings = new ArrayList<String>();
         if (r != null) {
-            Aether aether = new Aether(DESCRIPTOR.getRepos(), DESCRIPTOR.getLocalRepo());
+            File localRepo = RepositoryConfiguration.get().getLocalRepoPath();
+            Aether aether = new Aether(DESCRIPTOR.getRepos(), localRepo);
             try {
                 List<Version> versions = aether.resolveVersions(groupid, artifactid);
                 for (Version version : versions) {
@@ -133,12 +134,6 @@ public class VersionParameterDefinition extends
             return repos;
         }
 
-        public File getLocalRepo() {
-            String localRepo = RepositoryConfiguration.get().getLocalRepository();
-            log.fine("getLocalRepo()=" + localRepo);
-            return new File(localRepo);
-        }
-
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) {
             if (formData.has("repo")) {
@@ -191,7 +186,8 @@ public class VersionParameterDefinition extends
         private FormValidation checkPath(String artifactid, String groupid,
                 String repoid) {
             FormValidation result = FormValidation.ok();
-            Aether aether = new Aether(DESCRIPTOR.getRepos(), DESCRIPTOR.getLocalRepo());
+            File localRepo = RepositoryConfiguration.get().getLocalRepoPath();
+            Aether aether = new Aether(DESCRIPTOR.getRepos(), localRepo);
             try {
                 List<Version> versions = aether.resolveVersions(groupid, artifactid);
                 if (versions.isEmpty()) {

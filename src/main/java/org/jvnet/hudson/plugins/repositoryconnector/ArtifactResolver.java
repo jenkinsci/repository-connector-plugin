@@ -90,27 +90,13 @@ public class ArtifactResolver extends Builder implements Serializable {
         return artifacts;
     }
 
-    File getLocalRepoPath() {
-        String localRepositoryLocation = RepositoryConfiguration.get().getLocalRepository();
-        // default to local repo within java temp dir
-        if (StringUtils.isBlank(localRepositoryLocation)) {
-            localRepositoryLocation = System.getProperty("java.io.tmpdir") + "/repositoryconnector-repo";
-        }
-        return new File(localRepositoryLocation);
-    }
-
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
 
         final PrintStream logger = listener.getLogger();
         final Collection<Repository> repositories = RepositoryConfiguration.get().getRepos();
 
-        File localRepo = getLocalRepoPath();
-        if (!localRepo.exists()) {
-            log.info("create local repo directory: " + localRepo.getAbsolutePath());
-            localRepo.mkdirs();
-        }
-
+        File localRepo = RepositoryConfiguration.get().getLocalRepoPath();
         boolean failed = download(build, listener, logger, repositories, localRepo);
 
         if (failed && failOnError) {
