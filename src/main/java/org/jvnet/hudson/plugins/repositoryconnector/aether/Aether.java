@@ -18,6 +18,9 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import jenkins.model.Jenkins;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.repository.internal.DefaultServiceLocator;
@@ -38,6 +41,7 @@ import org.sonatype.aether.installation.InstallRequest;
 import org.sonatype.aether.installation.InstallationException;
 import org.sonatype.aether.repository.Authentication;
 import org.sonatype.aether.repository.LocalRepository;
+import org.sonatype.aether.repository.Proxy;
 import org.sonatype.aether.repository.RemoteRepository;
 import org.sonatype.aether.repository.RepositoryPolicy;
 import org.sonatype.aether.resolution.ArtifactResolutionException;
@@ -53,6 +57,8 @@ import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
 import org.sonatype.aether.version.Version;
 
 public class Aether {
+        private static final Logger log = Logger.getLogger(Aether.class.getName());
+
 	private final List<RemoteRepository> repositories = new ArrayList<RemoteRepository>();
 	private final RepositorySystem repositorySystem;
 	private final LocalRepository localRepository;
@@ -94,6 +100,14 @@ public class Aether {
                             logger.println("INFO: define repo: " + repo);
                         }
 			RemoteRepository repoObj = new RemoteRepository(repo.getId(), repo.getType(), repo.getUrl());
+                        Jenkins hudson = Jenkins.getInstance();
+                        if (hudson.proxy.name != null && !hudson.proxy.name.isEmpty()) {
+                            Authentication authenticator = new Authentication(hudson.proxy.getUserName(), hudson.proxy.getPassword());
+                            Proxy proxy = new Proxy(null, hudson.proxy.name, hudson.proxy.port, authenticator);
+                            log.log(Level.FINE, "Setting proxy for Aether: host={0}, port={1}, user={2}, password=******", 
+                                    new Object[]{hudson.proxy.name, hudson.proxy.port, hudson.proxy.getUserName()});
+                            repoObj.setProxy(proxy);
+                        }
 			RepositoryPolicy snapshotPolicy = new RepositoryPolicy(true, snapshotUpdatePolicy, snapshotChecksumPolicy);
 			RepositoryPolicy releasePolicy = new RepositoryPolicy(true, releaseUpdatePolicy, releaseChecksumPolicy);
 			final String user = repo.getUser();
