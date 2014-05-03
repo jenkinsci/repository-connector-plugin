@@ -21,6 +21,14 @@ public class VersionParameterValue extends StringParameterValue {
     private final String groupid;
     private final String artifactid;
 
+    public String getGroupid() {
+        return groupid;
+    }
+
+    public String getArtifactid() {
+        return artifactid;
+    }
+
     @DataBoundConstructor
     public VersionParameterValue(String groupid, String artifactid, String version) {
         super(groupid + "." + artifactid, version);

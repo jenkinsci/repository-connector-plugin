@@ -7,6 +7,8 @@ import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
+import hudson.model.ParameterValue;
+import hudson.model.ParametersAction;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 
@@ -128,12 +130,14 @@ public class ArtifactResolver extends Builder implements Serializable {
 
             try {
 
-                final String version = TokenMacro.expandAll(build, listener, a.getVersion());
                 final String classifier = TokenMacro.expandAll(build, listener, a.getClassifier());
                 final String artifactId = TokenMacro.expandAll(build, listener, a.getArtifactId());
                 final String groupId = TokenMacro.expandAll(build, listener, a.getGroupId());
                 final String extension = TokenMacro.expandAll(build, listener, a.getExtension());
                 final String targetFileName = TokenMacro.expandAll(build, listener, a.getTargetFileName());
+
+                String version = TokenMacro.expandAll(build, listener, a.getVersion());
+                version = checkVersionOverride(build, listener, groupId, artifactId, version);
 
                 AetherResult result = aether.resolve(groupId, artifactId, classifier, extension, version);
 
@@ -168,6 +172,37 @@ public class ArtifactResolver extends Builder implements Serializable {
 
         }
         return hasError;
+    }
+
+    /**
+     * This method searches for a build parameter of type VersionParameterValue and
+     * substitutes the configured version by the one, defined by the parameter.
+     *
+     * @param build the build
+     * @param listener the build listener
+     * @param groupId the Maven group id
+     * @param artifactId the Maven artifact id
+     * @param version the version
+     * @return The overridden version
+     */
+    private String checkVersionOverride(AbstractBuild<?, ?> build, BuildListener listener, String groupId, String artifactId, String version) {
+        String result = version;
+        List<ParametersAction> parameterActionList = build.getActions(ParametersAction.class);
+        for (ParametersAction parameterAction : parameterActionList) {
+            List<ParameterValue> parameterValueList = parameterAction.getParameters();
+            for (ParameterValue parameterValue : parameterValueList) {
+                if (ParameterValue.class.isAssignableFrom(VersionParameterValue.class)) {
+                    VersionParameterValue versionParameterValue = (VersionParameterValue) parameterValue;
+                    if (groupId != null && groupId.equals(versionParameterValue.getGroupid()) &&
+                            artifactId != null && artifactId.equals(versionParameterValue.getArtifactid())) {
+                        listener.getLogger().println("Overriding configured version '" + version + "' with version '"
+                                + versionParameterValue.value + "' from build parameter");
+                        result = versionParameterValue.value;
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     private boolean logError(String msg, final PrintStream logger, Exception e) {
