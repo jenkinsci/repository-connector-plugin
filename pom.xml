@@ -28,6 +28,11 @@
 			<name>Dominik Bartholdi</name>
 			<email>-</email>
 		</developer>
+		<developer>
+			<id>mrumpf</id>
+			<name>Michael Rumpf</name>
+			<email>michael@rumpfonline.de</email>
+		</developer>
 	</developers>
 	<repositories>
 		<repository>
