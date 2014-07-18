@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
@@ -45,7 +46,7 @@ public class ArtifactResolver extends Builder implements Serializable {
 
     private static Logger log = Logger.getLogger(ArtifactResolver.class.getName());
 
-    private static final String DEFAULT_TARGET = "target";
+    private static final String DEFAULT_TARGET = "";
 
     public String targetDirectory;
     public List<Artifact> artifacts;
@@ -132,7 +133,8 @@ public class ArtifactResolver extends Builder implements Serializable {
 
                     String fileName = StringUtils.isBlank(targetFileName) ? file.getName() : targetFileName;
                     FilePath source = new FilePath(file);
-                    FilePath target = new FilePath(build.getWorkspace(), getTargetDirectory() + "/" + fileName);
+                    String targetDir = StringUtils.isNotBlank(getTargetDirectory()) ? getTargetDirectory() + "/" : "";  
+					FilePath target = new FilePath(build.getWorkspace(), targetDir + fileName);
                     boolean wasDeleted = target.delete();
                     if (wasDeleted) {
                         logger.println("deleted " + target.toURI());
