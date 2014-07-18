@@ -101,7 +101,7 @@ public class Aether {
                         }
 			RemoteRepository repoObj = new RemoteRepository(repo.getId(), repo.getType(), repo.getUrl());
                         Jenkins hudson = Jenkins.getInstance();
-                        if (hudson.proxy.name != null && !hudson.proxy.name.isEmpty()) {
+                        if (hudson.proxy != null && hudson.proxy.name != null && !hudson.proxy.name.isEmpty()) {
                             Authentication authenticator = new Authentication(hudson.proxy.getUserName(), hudson.proxy.getPassword());
                             Proxy proxy = new Proxy(null, hudson.proxy.name, hudson.proxy.port, authenticator);
                             log.log(Level.FINE, "Setting proxy for Aether: host={0}, port={1}, user={2}, password=******", 
