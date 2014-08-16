@@ -179,7 +179,7 @@ public class ArtifactResolver extends Builder implements Serializable {
         for (ParametersAction parameterAction : parameterActionList) {
             List<ParameterValue> parameterValueList = parameterAction.getParameters();
             for (ParameterValue parameterValue : parameterValueList) {
-                if (ParameterValue.class.isAssignableFrom(VersionParameterValue.class)) {
+                if (parameterValue instanceof VersionParameterValue) {
                     VersionParameterValue versionParameterValue = (VersionParameterValue) parameterValue;
                     if (groupId != null && groupId.equals(versionParameterValue.getGroupid()) &&
                             artifactId != null && artifactId.equals(versionParameterValue.getArtifactid())) {
