@@ -16,6 +16,7 @@ package org.jvnet.hudson.plugins.repositoryconnector.aether;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
@@ -96,34 +97,52 @@ public class Aether {
 
 	private void initRemoteRepos(Collection<Repository> remoteRepositories) {
 		for (Repository repo : remoteRepositories) {
-                        if (logger != null) {
-                            logger.println("INFO: define repo: " + repo);
-                        }
+			if (logger != null) {
+				logger.println("INFO: define repo: " + repo);
+			}
 			RemoteRepository repoObj = new RemoteRepository(repo.getId(), repo.getType(), repo.getUrl());
-                        Jenkins hudson = Jenkins.getInstance();
-                        if (hudson.proxy != null && hudson.proxy.name != null && !hudson.proxy.name.isEmpty()) {
-                            Authentication authenticator = new Authentication(hudson.proxy.getUserName(), hudson.proxy.getPassword());
-                            Proxy proxy = new Proxy(null, hudson.proxy.name, hudson.proxy.port, authenticator);
-                            log.log(Level.FINE, "Setting proxy for Aether: host={0}, port={1}, user={2}, password=******", 
-                                    new Object[]{hudson.proxy.name, hudson.proxy.port, hudson.proxy.getUserName()});
-                            repoObj.setProxy(proxy);
-                        }
+			Jenkins hudson = Jenkins.getInstance();
+			if (hudson.proxy != null && hudson.proxy.name != null && !hudson.proxy.name.isEmpty()) {
+				Authentication authenticator = new Authentication(hudson.proxy.getUserName(), hudson.proxy.getPassword());
+				Proxy proxy = new Proxy(null, hudson.proxy.name, hudson.proxy.port, authenticator);
+				log.log(Level.FINE, "Setting proxy for Aether: host={0}, port={1}, user={2}, password=******",
+						new Object[]{hudson.proxy.name, hudson.proxy.port, hudson.proxy.getUserName()});
+				repoObj.setProxy(proxy);
+			}
 			RepositoryPolicy snapshotPolicy = new RepositoryPolicy(true, snapshotUpdatePolicy, snapshotChecksumPolicy);
 			RepositoryPolicy releasePolicy = new RepositoryPolicy(true, releaseUpdatePolicy, releaseChecksumPolicy);
 			final String user = repo.getUser();
 			if (!StringUtils.isBlank(user)) {
-                                if (logger != null) {
-                                    logger.println("INFO: set authentication for " + user);
-                                }
+				if (logger != null) {
+					logger.println("INFO: set authentication for " + user);
+				}
 				Authentication authentication = new Authentication(user, repo.getPassword());
 				repoObj.setAuthentication(authentication);
 			}
 			repoObj.setRepositoryManager(repo.isRepositoryManager());
+			if (repoObj.isRepositoryManager()) {
+				// well, in case of repository manager, let's have a look one step deeper
+				// @see org.sonatype.aether.impl.internal.DefaultMetadataResolver#getEnabledSourceRepositories(org.sonatype.aether.repository.RemoteRepository, org.sonatype.aether.metadata.Metadata.Nature)
+				repoObj.setMirroredRepositories(resolveMirrors(repoObj));
+			}
 			repoObj.setPolicy(true, snapshotPolicy);
 			repoObj.setPolicy(false, releasePolicy);
 			repositories.add(repoObj);
 		}
 	}
+
+	/**
+	 * Resolve mirrors configured in this repository... Or fake it...
+	 *
+	 * @param repository the repository
+	 * @return the list of mirrored repositories
+	 */
+	private List<RemoteRepository> resolveMirrors(RemoteRepository repository) {
+		// unfortunately, at this point we don't have a lib to parse the 'meta/repository-metadata.xml' and extract the mirrors
+		// just push the repository in the list of mirrored to enable artifact resolution
+		return Arrays.asList(new RemoteRepository(repository));
+	}
+
 
 	private RepositorySystem newManualSystem() {
 		DefaultServiceLocator locator = new DefaultServiceLocator();
