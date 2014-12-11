@@ -19,20 +19,20 @@ import java.util.List;
 import org.sonatype.aether.graph.DependencyNode;
 
 public class AetherResult {
-	private DependencyNode root;
-	private List<File> resolvedFiles;
+    private DependencyNode root;
+    private List<File> resolvedFiles;
 
-	public AetherResult(DependencyNode root, List<File> resolvedFiles) {
-		this.root = root;
-		this.resolvedFiles = resolvedFiles;
-	}
+    public AetherResult(DependencyNode root, List<File> resolvedFiles) {
+        this.root = root;
+        this.resolvedFiles = resolvedFiles;
+    }
 
-	public DependencyNode getRoot() {
-		return root;
-	}
+    public DependencyNode getRoot() {
+        return root;
+    }
 
-	public List<File> getResolvedFiles() {
-		return resolvedFiles;
-	}
+    public List<File> getResolvedFiles() {
+        return resolvedFiles;
+    }
 
 }
