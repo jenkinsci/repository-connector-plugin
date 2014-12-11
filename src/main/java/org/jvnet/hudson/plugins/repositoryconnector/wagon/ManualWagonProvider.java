@@ -24,18 +24,18 @@ import org.sonatype.aether.connector.wagon.WagonProvider;
  */
 public class ManualWagonProvider implements WagonProvider {
 
-	public Wagon lookup(String roleHint) throws Exception {
-		if ("file".equals(roleHint)) {
-			return new FileWagon();
-		} else if ("http".equals(roleHint)) {
-			return new LightweightHttpWagon();
-		} else if ("https".equals(roleHint)) {
-			return new LightweightHttpsWagon();
-		}
-		throw new IllegalArgumentException("No wagon provider registered for protocol " + roleHint);
-	}
+    public Wagon lookup(String roleHint) throws Exception {
+        if ("file".equals(roleHint)) {
+            return new FileWagon();
+        } else if ("http".equals(roleHint)) {
+            return new LightweightHttpWagon();
+        } else if ("https".equals(roleHint)) {
+            return new LightweightHttpsWagon();
+        }
+        throw new IllegalArgumentException("No wagon provider registered for protocol " + roleHint);
+    }
 
-	public void release(Wagon wagon) {
-	}
+    public void release(Wagon wagon) {
+    }
 
 }

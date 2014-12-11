@@ -134,7 +134,7 @@ public class ArtifactResolver extends Builder implements Serializable {
                     String fileName = StringUtils.isBlank(targetFileName) ? file.getName() : targetFileName;
                     FilePath source = new FilePath(file);
                     String targetDir = StringUtils.isNotBlank(getTargetDirectory()) ? getTargetDirectory() + "/" : "";  
-					FilePath target = new FilePath(build.getWorkspace(), targetDir + fileName);
+                    FilePath target = new FilePath(build.getWorkspace(), targetDir + fileName);
                     boolean wasDeleted = target.delete();
                     if (wasDeleted) {
                         logger.println("deleted " + target.toURI());

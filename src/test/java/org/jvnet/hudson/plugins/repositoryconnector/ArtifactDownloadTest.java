@@ -86,11 +86,11 @@ public class ArtifactDownloadTest {
 
      // @formatter:off
         ParametersDefinitionProperty parametersDefinitionProperty = new ParametersDefinitionProperty(new StringParameterDefinition("MY_VERSION", "1.0.4"),
-        																							 new StringParameterDefinition("MY_ARTID", "commons-logging"),
-        																							 new StringParameterDefinition("MY_GROUP", "commons-logging"),
-        																							 new StringParameterDefinition("MY_CLASSIFIER", ""),
-        																							 new StringParameterDefinition("MY_EXT", "jar"),
-        																							 new StringParameterDefinition("MY_FILE", "aFile.jar"));
+                                                                                                     new StringParameterDefinition("MY_ARTID", "commons-logging"),
+                                                                                                     new StringParameterDefinition("MY_GROUP", "commons-logging"),
+                                                                                                     new StringParameterDefinition("MY_CLASSIFIER", ""),
+                                                                                                     new StringParameterDefinition("MY_EXT", "jar"),
+                                                                                                     new StringParameterDefinition("MY_FILE", "aFile.jar"));
         p.addProperty(parametersDefinitionProperty);
      // @formatter:on
 
@@ -98,17 +98,17 @@ public class ArtifactDownloadTest {
     }    
 
     private static final class VerifyBuilder extends Builder {
-    	
-    	private final String expectedFile;
-    	
-    	public VerifyBuilder(String expectedFile) {
-    		this.expectedFile=expectedFile;		
-    	}
+
+        private final String expectedFile;
+
+        public VerifyBuilder(String expectedFile) {
+            this.expectedFile=expectedFile;
+        }
 
         @Override
         public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        	FilePath f = new FilePath(build.getWorkspace(), expectedFile);
-        	Assert.assertTrue("File not available: " + f.getRemote(), f.exists());
+            FilePath f = new FilePath(build.getWorkspace(), expectedFile);
+            Assert.assertTrue("File not available: " + f.getRemote(), f.exists());
             return true;
         }
     }    
