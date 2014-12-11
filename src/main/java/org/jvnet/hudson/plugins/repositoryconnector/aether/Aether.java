@@ -60,131 +60,131 @@ import org.sonatype.aether.version.Version;
 public class Aether {
         private static final Logger log = Logger.getLogger(Aether.class.getName());
 
-	private final List<RemoteRepository> repositories = new ArrayList<RemoteRepository>();
-	private final RepositorySystem repositorySystem;
-	private final LocalRepository localRepository;
-	private final PrintStream logger;
-	private final boolean extendedLogging;
-	public String snapshotUpdatePolicy;
-	public String releaseUpdatePolicy;
-	public String snapshotChecksumPolicy;
-	public String releaseChecksumPolicy;
+    private final List<RemoteRepository> repositories = new ArrayList<RemoteRepository>();
+    private final RepositorySystem repositorySystem;
+    private final LocalRepository localRepository;
+    private final PrintStream logger;
+    private final boolean extendedLogging;
+    public String snapshotUpdatePolicy;
+    public String releaseUpdatePolicy;
+    public String snapshotChecksumPolicy;
+    public String releaseChecksumPolicy;
 
-	public Aether(Collection<Repository> remoteRepositories, File localRepository) {
+    public Aether(Collection<Repository> remoteRepositories, File localRepository) {
             this(remoteRepositories, localRepository, null, false, RepositoryPolicy.UPDATE_POLICY_NEVER, 
                     RepositoryPolicy.CHECKSUM_POLICY_IGNORE, RepositoryPolicy.UPDATE_POLICY_NEVER, RepositoryPolicy.CHECKSUM_POLICY_IGNORE);
         }
 
-	public Aether(Collection<Repository> remoteRepositories, File localRepository, PrintStream logger, boolean extendedLogging,
-			String snapshotUpdatePolicy, String snapshotChecksumPolicy, String releaseUpdatePolicy, String releaseChecksumPolicy) {
-		this.logger = logger;
-		this.repositorySystem = newManualSystem();
-		this.localRepository = new LocalRepository(localRepository);
-		this.extendedLogging = extendedLogging;
-		this.releaseUpdatePolicy = releaseUpdatePolicy;
-		this.releaseChecksumPolicy = releaseChecksumPolicy;
-		this.snapshotUpdatePolicy = snapshotUpdatePolicy;
-		this.snapshotChecksumPolicy = snapshotChecksumPolicy;
-		this.initRemoteRepos(remoteRepositories);
-	}
+    public Aether(Collection<Repository> remoteRepositories, File localRepository, PrintStream logger, boolean extendedLogging,
+            String snapshotUpdatePolicy, String snapshotChecksumPolicy, String releaseUpdatePolicy, String releaseChecksumPolicy) {
+        this.logger = logger;
+        this.repositorySystem = newManualSystem();
+        this.localRepository = new LocalRepository(localRepository);
+        this.extendedLogging = extendedLogging;
+        this.releaseUpdatePolicy = releaseUpdatePolicy;
+        this.releaseChecksumPolicy = releaseChecksumPolicy;
+        this.snapshotUpdatePolicy = snapshotUpdatePolicy;
+        this.snapshotChecksumPolicy = snapshotChecksumPolicy;
+        this.initRemoteRepos(remoteRepositories);
+    }
 
-	public Aether(File localRepository, PrintStream logger, boolean extendedLogging) {
-		this.logger = logger;
-		this.localRepository = new LocalRepository(localRepository);
-		this.extendedLogging = extendedLogging;
-		this.repositorySystem = newManualSystem();
-	}
+    public Aether(File localRepository, PrintStream logger, boolean extendedLogging) {
+        this.logger = logger;
+        this.localRepository = new LocalRepository(localRepository);
+        this.extendedLogging = extendedLogging;
+        this.repositorySystem = newManualSystem();
+    }
 
-	private void initRemoteRepos(Collection<Repository> remoteRepositories) {
-		for (Repository repo : remoteRepositories) {
-			if (logger != null) {
-				logger.println("INFO: define repo: " + repo);
-			}
-			RemoteRepository repoObj = new RemoteRepository(repo.getId(), repo.getType(), repo.getUrl());
-			Jenkins hudson = Jenkins.getInstance();
-			if (hudson.proxy != null && hudson.proxy.name != null && !hudson.proxy.name.isEmpty()) {
-				Authentication authenticator = new Authentication(hudson.proxy.getUserName(), hudson.proxy.getPassword());
-				Proxy proxy = new Proxy(null, hudson.proxy.name, hudson.proxy.port, authenticator);
-				log.log(Level.FINE, "Setting proxy for Aether: host={0}, port={1}, user={2}, password=******",
-						new Object[]{hudson.proxy.name, hudson.proxy.port, hudson.proxy.getUserName()});
-				repoObj.setProxy(proxy);
-			}
-			RepositoryPolicy snapshotPolicy = new RepositoryPolicy(true, snapshotUpdatePolicy, snapshotChecksumPolicy);
-			RepositoryPolicy releasePolicy = new RepositoryPolicy(true, releaseUpdatePolicy, releaseChecksumPolicy);
-			final String user = repo.getUser();
-			if (!StringUtils.isBlank(user)) {
-				if (logger != null) {
-					logger.println("INFO: set authentication for " + user);
-				}
-				Authentication authentication = new Authentication(user, repo.getPassword());
-				repoObj.setAuthentication(authentication);
-			}
-			repoObj.setRepositoryManager(repo.isRepositoryManager());
-			if (repoObj.isRepositoryManager()) {
-				// well, in case of repository manager, let's have a look one step deeper
-				// @see org.sonatype.aether.impl.internal.DefaultMetadataResolver#getEnabledSourceRepositories(org.sonatype.aether.repository.RemoteRepository, org.sonatype.aether.metadata.Metadata.Nature)
-				repoObj.setMirroredRepositories(resolveMirrors(repoObj));
-			}
-			repoObj.setPolicy(true, snapshotPolicy);
-			repoObj.setPolicy(false, releasePolicy);
-			repositories.add(repoObj);
-		}
-	}
+    private void initRemoteRepos(Collection<Repository> remoteRepositories) {
+        for (Repository repo : remoteRepositories) {
+            if (logger != null) {
+                logger.println("INFO: define repo: " + repo);
+            }
+            RemoteRepository repoObj = new RemoteRepository(repo.getId(), repo.getType(), repo.getUrl());
+            Jenkins hudson = Jenkins.getInstance();
+            if (hudson.proxy != null && hudson.proxy.name != null && !hudson.proxy.name.isEmpty()) {
+                Authentication authenticator = new Authentication(hudson.proxy.getUserName(), hudson.proxy.getPassword());
+                Proxy proxy = new Proxy(null, hudson.proxy.name, hudson.proxy.port, authenticator);
+                log.log(Level.FINE, "Setting proxy for Aether: host={0}, port={1}, user={2}, password=******",
+                        new Object[]{hudson.proxy.name, hudson.proxy.port, hudson.proxy.getUserName()});
+                repoObj.setProxy(proxy);
+            }
+            RepositoryPolicy snapshotPolicy = new RepositoryPolicy(true, snapshotUpdatePolicy, snapshotChecksumPolicy);
+            RepositoryPolicy releasePolicy = new RepositoryPolicy(true, releaseUpdatePolicy, releaseChecksumPolicy);
+            final String user = repo.getUser();
+            if (!StringUtils.isBlank(user)) {
+                if (logger != null) {
+                    logger.println("INFO: set authentication for " + user);
+                }
+                Authentication authentication = new Authentication(user, repo.getPassword());
+                repoObj.setAuthentication(authentication);
+            }
+            repoObj.setRepositoryManager(repo.isRepositoryManager());
+            if (repoObj.isRepositoryManager()) {
+                // well, in case of repository manager, let's have a look one step deeper
+                // @see org.sonatype.aether.impl.internal.DefaultMetadataResolver#getEnabledSourceRepositories(org.sonatype.aether.repository.RemoteRepository, org.sonatype.aether.metadata.Metadata.Nature)
+                repoObj.setMirroredRepositories(resolveMirrors(repoObj));
+            }
+            repoObj.setPolicy(true, snapshotPolicy);
+            repoObj.setPolicy(false, releasePolicy);
+            repositories.add(repoObj);
+        }
+    }
 
-	/**
-	 * Resolve mirrors configured in this repository... Or fake it...
-	 *
-	 * @param repository the repository
-	 * @return the list of mirrored repositories
-	 */
-	private List<RemoteRepository> resolveMirrors(RemoteRepository repository) {
-		// unfortunately, at this point we don't have a lib to parse the 'meta/repository-metadata.xml' and extract the mirrors
-		// just push the repository in the list of mirrored to enable artifact resolution
-		return Arrays.asList(new RemoteRepository(repository));
-	}
+    /**
+     * Resolve mirrors configured in this repository... Or fake it...
+     *
+     * @param repository the repository
+     * @return the list of mirrored repositories
+     */
+    private List<RemoteRepository> resolveMirrors(RemoteRepository repository) {
+        // unfortunately, at this point we don't have a lib to parse the 'meta/repository-metadata.xml' and extract the mirrors
+        // just push the repository in the list of mirrored to enable artifact resolution
+        return Arrays.asList(new RemoteRepository(repository));
+    }
 
 
-	private RepositorySystem newManualSystem() {
-		DefaultServiceLocator locator = new DefaultServiceLocator();
-		locator.setServices(WagonProvider.class, new org.jvnet.hudson.plugins.repositoryconnector.wagon.ManualWagonProvider());
-		locator.addService(RepositoryConnectorFactory.class, WagonRepositoryConnectorFactory.class);
-		return locator.getService(RepositorySystem.class);
-	}
+    private RepositorySystem newManualSystem() {
+        DefaultServiceLocator locator = new DefaultServiceLocator();
+        locator.setServices(WagonProvider.class, new org.jvnet.hudson.plugins.repositoryconnector.wagon.ManualWagonProvider());
+        locator.addService(RepositoryConnectorFactory.class, WagonRepositoryConnectorFactory.class);
+        return locator.getService(RepositorySystem.class);
+    }
 
-	private RepositorySystemSession newSession() {
-		MavenRepositorySystemSession session = new MavenRepositorySystemSession();
-		session.setLocalRepositoryManager(repositorySystem.newLocalRepositoryManager(localRepository));
-		if (extendedLogging && logger != null) {
-			session.setTransferListener(new ConsoleTransferListener(logger));
-			session.setRepositoryListener(new ConsoleRepositoryListener(logger));
-		}
-		return session;
-	}
+    private RepositorySystemSession newSession() {
+        MavenRepositorySystemSession session = new MavenRepositorySystemSession();
+        session.setLocalRepositoryManager(repositorySystem.newLocalRepositoryManager(localRepository));
+        if (extendedLogging && logger != null) {
+            session.setTransferListener(new ConsoleTransferListener(logger));
+            session.setRepositoryListener(new ConsoleRepositoryListener(logger));
+        }
+        return session;
+    }
 
-	public AetherResult resolve(String groupId, String artifactId, String classifier, String extension, String version)
-			throws DependencyCollectionException, ArtifactResolutionException, DependencyResolutionException {
-		RepositorySystemSession session = newSession();
-		Dependency dependency = new Dependency(new DefaultArtifact(groupId, artifactId, classifier, extension, version), "provided");
+    public AetherResult resolve(String groupId, String artifactId, String classifier, String extension, String version)
+            throws DependencyCollectionException, ArtifactResolutionException, DependencyResolutionException {
+        RepositorySystemSession session = newSession();
+        Dependency dependency = new Dependency(new DefaultArtifact(groupId, artifactId, classifier, extension, version), "provided");
 
-		CollectRequest collectRequest = new CollectRequest(dependency, repositories);
+        CollectRequest collectRequest = new CollectRequest(dependency, repositories);
 
-		// collectRequest.setRoot(dependency);
+        // collectRequest.setRoot(dependency);
 
-		DependencyNode rootNode = repositorySystem.collectDependencies(session, collectRequest).getRoot();
+        DependencyNode rootNode = repositorySystem.collectDependencies(session, collectRequest).getRoot();
 
-		DependencyRequest dependencyRequest = new DependencyRequest(rootNode, new ExcludeTranisitiveDependencyFilter());
-		DependencyResult resolvedDependencies = repositorySystem.resolveDependencies(session, dependencyRequest);
+        DependencyRequest dependencyRequest = new DependencyRequest(rootNode, new ExcludeTranisitiveDependencyFilter());
+        DependencyResult resolvedDependencies = repositorySystem.resolveDependencies(session, dependencyRequest);
 
-		PreorderNodeListGenerator nlg = new PreorderNodeListGenerator();
-		rootNode.accept(nlg);
+        PreorderNodeListGenerator nlg = new PreorderNodeListGenerator();
+        rootNode.accept(nlg);
 
-		return new AetherResult(rootNode, nlg.getFiles());
-	}
+        return new AetherResult(rootNode, nlg.getFiles());
+    }
 
-	public List<Version> resolveVersions(String groupId, String artifactId)
-			throws VersionRangeResolutionException {
-		RepositorySystemSession session = newSession();
-		Artifact artifact = new DefaultArtifact(groupId, artifactId, null, null, "[0,)");
+    public List<Version> resolveVersions(String groupId, String artifactId)
+            throws VersionRangeResolutionException {
+        RepositorySystemSession session = newSession();
+        Artifact artifact = new DefaultArtifact(groupId, artifactId, null, null, "[0,)");
 
                 VersionRangeRequest rangeRequest = new VersionRangeRequest();
                 rangeRequest.setArtifact( artifact );
@@ -193,36 +193,36 @@ public class Aether {
                 VersionRangeResult rangeResult = repositorySystem.resolveVersionRange( session, rangeRequest );
 
                 return rangeResult.getVersions();
-	}
+    }
 
-	public void install(Artifact artifact, Artifact pom) throws InstallationException {
-		RepositorySystemSession session = newSession();
+    public void install(Artifact artifact, Artifact pom) throws InstallationException {
+        RepositorySystemSession session = newSession();
 
-		InstallRequest installRequest = new InstallRequest();
-		installRequest.addArtifact(artifact).addArtifact(pom);
+        InstallRequest installRequest = new InstallRequest();
+        installRequest.addArtifact(artifact).addArtifact(pom);
 
-		repositorySystem.install(session, installRequest);
-	}
+        repositorySystem.install(session, installRequest);
+    }
 
-	public void deploy(Repository repository, Artifact artifact, Artifact pom) throws DeploymentException {
-		RepositorySystemSession session = newSession();
+    public void deploy(Repository repository, Artifact artifact, Artifact pom) throws DeploymentException {
+        RepositorySystemSession session = newSession();
 
-		RemoteRepository repoObj = new RemoteRepository(repository.getId(), repository.getType(), repository.getUrl());
-		repoObj.setRepositoryManager(repository.isRepositoryManager());
-		final String user = repository.getUser();
-		if (!StringUtils.isBlank(user)) {
+        RemoteRepository repoObj = new RemoteRepository(repository.getId(), repository.getType(), repository.getUrl());
+        repoObj.setRepositoryManager(repository.isRepositoryManager());
+        final String user = repository.getUser();
+        if (!StringUtils.isBlank(user)) {
                         if (logger != null) {
                             logger.println("INFO: set authentication for " + user);
                         }
-			Authentication authentication = new Authentication(user, repository.getPassword());
-			repoObj.setAuthentication(authentication);
-		}
+            Authentication authentication = new Authentication(user, repository.getPassword());
+            repoObj.setAuthentication(authentication);
+        }
 
-		DeployRequest deployRequest = new DeployRequest();
-		deployRequest.addArtifact(artifact);
-		deployRequest.addArtifact(pom);
-		deployRequest.setRepository(repoObj);
+        DeployRequest deployRequest = new DeployRequest();
+        deployRequest.addArtifact(artifact);
+        deployRequest.addArtifact(pom);
+        deployRequest.setRepository(repoObj);
 
-		repositorySystem.deploy(session, deployRequest);
-	}
+        repositorySystem.deploy(session, deployRequest);
+    }
 }
