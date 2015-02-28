@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import jenkins.model.Jenkins;
 
 import org.apache.commons.lang.StringUtils;
@@ -53,8 +54,10 @@ import org.sonatype.aether.resolution.VersionRangeRequest;
 import org.sonatype.aether.resolution.VersionRangeResolutionException;
 import org.sonatype.aether.resolution.VersionRangeResult;
 import org.sonatype.aether.spi.connector.RepositoryConnectorFactory;
+import org.sonatype.aether.util.DefaultRepositorySystemSession;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
 import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
+import org.sonatype.aether.util.repository.DefaultProxySelector;
 import org.sonatype.aether.version.Version;
 
 public class Aether {
@@ -101,14 +104,7 @@ public class Aether {
                 logger.println("INFO: define repo: " + repo);
             }
             RemoteRepository repoObj = new RemoteRepository(repo.getId(), repo.getType(), repo.getUrl());
-            Jenkins hudson = Jenkins.getInstance();
-            if (hudson.proxy != null && hudson.proxy.name != null && !hudson.proxy.name.isEmpty()) {
-                Authentication authenticator = new Authentication(hudson.proxy.getUserName(), hudson.proxy.getPassword());
-                Proxy proxy = new Proxy(null, hudson.proxy.name, hudson.proxy.port, authenticator);
-                log.log(Level.FINE, "Setting proxy for Aether: host={0}, port={1}, user={2}, password=******",
-                        new Object[]{hudson.proxy.name, hudson.proxy.port, hudson.proxy.getUserName()});
-                repoObj.setProxy(proxy);
-            }
+            
             RepositoryPolicy snapshotPolicy = new RepositoryPolicy(true, snapshotUpdatePolicy, snapshotChecksumPolicy);
             RepositoryPolicy releasePolicy = new RepositoryPolicy(true, releaseUpdatePolicy, releaseChecksumPolicy);
             final String user = repo.getUser();
@@ -130,6 +126,38 @@ public class Aether {
             repositories.add(repoObj);
         }
     }
+    
+	private void addProxySelectorIfNecessary(DefaultRepositorySystemSession repositorySession) {
+		Jenkins hudson = Jenkins.getInstance();
+		if (hudson.proxy != null && hudson.proxy.name != null
+				&& !hudson.proxy.name.isEmpty()) {
+			DefaultProxySelector proxySelector = new DefaultProxySelector();
+			Authentication authenticator = new Authentication(
+					hudson.proxy.getUserName(), hudson.proxy.getPassword());
+
+			Proxy httpProxy = new Proxy("http", hudson.proxy.name,
+					hudson.proxy.port, authenticator);
+			Proxy httpsProxy = new Proxy("https", hudson.proxy.name,
+					hudson.proxy.port, authenticator);
+
+			String nonProxySettings = convertHudsonNonProxyToJavaNonProxy(hudson.proxy.noProxyHost);
+
+			proxySelector.add(httpProxy, nonProxySettings);
+			proxySelector.add(httpsProxy, nonProxySettings);
+
+			log.log(Level.FINE,
+					"Setting proxy for Aether: host={0}, port={1}, user={2}, password=******, nonProxyHosts={3}",
+					new Object[] { hudson.proxy.name, hudson.proxy.port,
+							hudson.proxy.getUserName(), nonProxySettings });
+			repositorySession.setProxySelector(proxySelector);
+		}
+	}
+
+	public String convertHudsonNonProxyToJavaNonProxy(String hudsonNonProxy) {
+		String[] nonProxyArray = hudsonNonProxy.split("[ \t\n,|]+");
+		String nonProxyOneLine = StringUtils.join(nonProxyArray, '|');
+		return nonProxyOneLine;
+	}
 
     /**
      * Resolve mirrors configured in this repository... Or fake it...
@@ -158,6 +186,7 @@ public class Aether {
             session.setTransferListener(new ConsoleTransferListener(logger));
             session.setRepositoryListener(new ConsoleRepositoryListener(logger));
         }
+        addProxySelectorIfNecessary(session);
         return session;
     }
 
