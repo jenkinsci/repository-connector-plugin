@@ -128,27 +128,21 @@ public class Aether {
     }
     
 	private void addProxySelectorIfNecessary(DefaultRepositorySystemSession repositorySession) {
-		Jenkins hudson = Jenkins.getInstance();
-		if (hudson.proxy != null && hudson.proxy.name != null
-				&& !hudson.proxy.name.isEmpty()) {
+		Jenkins jenkins = Jenkins.getInstance();
+		if (jenkins.proxy != null && StringUtils.isNotBlank(jenkins.proxy.name)) {
 			DefaultProxySelector proxySelector = new DefaultProxySelector();
-			Authentication authenticator = new Authentication(
-					hudson.proxy.getUserName(), hudson.proxy.getPassword());
+			Authentication authenticator = new Authentication(jenkins.proxy.getUserName(), jenkins.proxy.getPassword());
 
-			Proxy httpProxy = new Proxy("http", hudson.proxy.name,
-					hudson.proxy.port, authenticator);
-			Proxy httpsProxy = new Proxy("https", hudson.proxy.name,
-					hudson.proxy.port, authenticator);
+			Proxy httpProxy = new Proxy("http", jenkins.proxy.name, jenkins.proxy.port, authenticator);
+			Proxy httpsProxy = new Proxy("https", jenkins.proxy.name, jenkins.proxy.port, authenticator);
 
-			String nonProxySettings = convertHudsonNonProxyToJavaNonProxy(hudson.proxy.noProxyHost);
+			String nonProxySettings = convertHudsonNonProxyToJavaNonProxy(jenkins.proxy.noProxyHost);
 
 			proxySelector.add(httpProxy, nonProxySettings);
 			proxySelector.add(httpsProxy, nonProxySettings);
 
-			log.log(Level.FINE,
-					"Setting proxy for Aether: host={0}, port={1}, user={2}, password=******, nonProxyHosts={3}",
-					new Object[] { hudson.proxy.name, hudson.proxy.port,
-							hudson.proxy.getUserName(), nonProxySettings });
+			log.log(Level.FINE, "Setting proxy for Aether: host={0}, port={1}, user={2}, password=******, nonProxyHosts={3}",
+					new Object[] { jenkins.proxy.name, jenkins.proxy.port, jenkins.proxy.getUserName(), nonProxySettings });
 			repositorySession.setProxySelector(proxySelector);
 		}
 	}
