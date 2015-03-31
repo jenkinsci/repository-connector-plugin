@@ -148,6 +148,9 @@ public class Aether {
 	}
 
 	public String convertHudsonNonProxyToJavaNonProxy(String hudsonNonProxy) {
+        if (StringUtils.isEmpty(hudsonNonProxy)) {
+            return "";
+        }
 		String[] nonProxyArray = hudsonNonProxy.split("[ \t\n,|]+");
 		String nonProxyOneLine = StringUtils.join(nonProxyArray, '|');
 		return nonProxyOneLine;
