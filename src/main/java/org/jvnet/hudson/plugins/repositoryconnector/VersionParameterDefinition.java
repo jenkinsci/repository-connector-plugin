@@ -78,6 +78,11 @@ public class VersionParameterDefinition extends
                 log.log(Level.SEVERE, "Could not determine versions", ex);
             }
         }
+        // add this only when versions have been found at all
+        if (!versionStrings.isEmpty()) {
+            versionStrings.add("RELEASE");
+            versionStrings.add("LATEST");
+        }
         return versionStrings;
     }
 
