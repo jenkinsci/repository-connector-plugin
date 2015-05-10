@@ -5,11 +5,12 @@ import hudson.model.ParameterValue;
 import hudson.model.SimpleParameterDefinition;
 import hudson.model.StringParameterValue;
 import hudson.util.FormValidation;
-import java.io.File;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,8 +20,8 @@ import javax.servlet.ServletException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
-import org.jvnet.hudson.plugins.repositoryconnector.aether.Aether;
 
+import org.jvnet.hudson.plugins.repositoryconnector.aether.Aether;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -33,6 +34,7 @@ import org.sonatype.aether.version.Version;
  * @author mrumpf
  *
  */
+@SuppressWarnings("serial")
 public class VersionParameterDefinition extends
         SimpleParameterDefinition {
 
@@ -41,22 +43,24 @@ public class VersionParameterDefinition extends
     private final String groupid;
     private final String repoid;
     private final String artifactid;
+    private final String propertyName;
 
     @DataBoundConstructor
     public VersionParameterDefinition(String repoid, String groupid,
-            String artifactid, String description) {
+            String artifactid, String propertyName, String description) {
         super(groupid + "." + artifactid, description);
         this.repoid = repoid;
         this.groupid = groupid;
         this.artifactid = artifactid;
+        this.propertyName = propertyName;
     }
 
     @Override
     public VersionParameterDefinition copyWithDefaultValue(ParameterValue defaultValue) {
         if (defaultValue instanceof StringParameterValue) {
-            StringParameterValue value = (StringParameterValue) defaultValue;
+            // create a parameter with the repository id as name
             return new VersionParameterDefinition(getRepoid(), "",
-                    "", getDescription());
+                    "", "", getDescription());
         } else {
             return this;
         }
@@ -65,22 +69,31 @@ public class VersionParameterDefinition extends
     @Exported
     public List<String> getChoices() {
         Repository r = DESCRIPTOR.getRepo(repoid);
-        List<String> versionStrings = new ArrayList<String>();
+        List<Version> versions = new ArrayList<Version>();
         if (r != null) {
             File localRepo = RepositoryConfiguration.get().getLocalRepoPath();
             Aether aether = new Aether(DESCRIPTOR.getRepos(), localRepo);
             try {
-                List<Version> versions = aether.resolveVersions(groupid, artifactid);
-                for (Version version : versions) {
-                    versionStrings.add(version.toString());
-                }
+                versions = aether.resolveVersions(groupid, artifactid);
             } catch (VersionRangeResolutionException ex) {
                 log.log(Level.SEVERE, "Could not determine versions", ex);
             }
         }
+        List<String> versionStrings = new ArrayList<String>();
+        for (Version version : versions) {
+            versionStrings.add(version.toString());
+        }
+
+        if (!versionStrings.isEmpty()) {
+            // reverseorder to have the latest versions on top of the list
+            Collections.reverse(versionStrings);
+            // add the default parameters
+            versionStrings.add(0, "LATEST");
+            versionStrings.add(0, "RELEASE");
+        }
         return versionStrings;
     }
-
+                        
     @Exported
     public String getArtifactid() {
         return artifactid;
@@ -96,9 +109,18 @@ public class VersionParameterDefinition extends
         return groupid;
     }
 
+    @Exported
+    public String getPropertyName() {
+        return propertyName;
+    }
+
     @Override
     public ParameterValue createValue(StaplerRequest req, JSONObject jo) {
-        return new VersionParameterValue(groupid, artifactid, jo.getString("value"));
+        String name = groupid + "." + artifactid;
+        if (propertyName != null && !propertyName.isEmpty()) {
+            name = propertyName;
+        }
+        return new StringParameterValue(name, jo.getString("value"));
     }
 
     @Override
@@ -123,14 +145,22 @@ public class VersionParameterDefinition extends
         }
 
         public Repository getRepo(String id) {
-            Repository repo = RepositoryConfiguration.get().getRepositoryMap().get(id);
-            log.fine("getRepo(" + id + ")=" + repo);
+            RepositoryConfiguration repoConfig = RepositoryConfiguration.get();
+            Repository repo = null;
+            if (repoConfig != null) {
+                repo = RepositoryConfiguration.get().getRepositoryMap().get(id);
+                log.fine("getRepo(" + id + ")=" + repo);
+            }
             return repo;
         }
 
         public Collection<Repository> getRepos() {
-            Collection<Repository> repos = RepositoryConfiguration.get().getRepos();
-            log.fine("getRepos()=" + repos);
+            RepositoryConfiguration repoConfig = RepositoryConfiguration.get();
+            Collection<Repository> repos = null;
+            if (repoConfig != null) {
+                repos = repoConfig.getRepos();
+                log.fine("getRepos()=" + repos);
+            }
             return repos;
         }
 
@@ -266,6 +296,8 @@ public class VersionParameterDefinition extends
         sb.append(repoid);
         sb.append(", artifactid=");
         sb.append(artifactid);
+        sb.append(", name=");
+        sb.append(propertyName);
         sb.append(']');
         return sb.toString();
     }
