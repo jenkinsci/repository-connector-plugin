@@ -5,11 +5,12 @@ import hudson.model.ParameterValue;
 import hudson.model.SimpleParameterDefinition;
 import hudson.model.StringParameterValue;
 import hudson.util.FormValidation;
-import java.io.File;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,8 +20,8 @@ import javax.servlet.ServletException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
-import org.jvnet.hudson.plugins.repositoryconnector.aether.Aether;
 
+import org.jvnet.hudson.plugins.repositoryconnector.aether.Aether;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -65,24 +66,29 @@ public class VersionParameterDefinition extends
     @Exported
     public List<String> getChoices() {
         Repository r = DESCRIPTOR.getRepo(repoid);
-        List<String> versionStrings = new ArrayList<String>();
+        List<Version> versions = new ArrayList<Version>();
         if (r != null) {
             File localRepo = RepositoryConfiguration.get().getLocalRepoPath();
             Aether aether = new Aether(DESCRIPTOR.getRepos(), localRepo);
             try {
-                List<Version> versions = aether.resolveVersions(groupid, artifactid);
-                for (Version version : versions) {
-                    versionStrings.add(version.toString());
-                }
+                versions = aether.resolveVersions(groupid, artifactid);
             } catch (VersionRangeResolutionException ex) {
                 log.log(Level.SEVERE, "Could not determine versions", ex);
             }
         }
-        // add this only when versions have been found at all
-        if (!versionStrings.isEmpty()) {
-            versionStrings.add("RELEASE");
-            versionStrings.add("LATEST");
+        List<String> versionStrings = new ArrayList<String>();
+        for (Version version : versions) {
+            versionStrings.add(version.toString());
         }
+
+        if (!versionStrings.isEmpty()) {
+            // reverseorder to have the latest versions on top of the list
+            Collections.reverse(versionStrings);
+            // add the default parameters
+            versionStrings.add(0, "LATEST");
+            versionStrings.add(0, "RELEASE");
+        }
+        
         return versionStrings;
     }
 
