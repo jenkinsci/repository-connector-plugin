@@ -34,6 +34,7 @@ import org.sonatype.aether.version.Version;
  * @author mrumpf
  *
  */
+@SuppressWarnings("serial")
 public class VersionParameterDefinition extends
         SimpleParameterDefinition {
 
@@ -42,22 +43,24 @@ public class VersionParameterDefinition extends
     private final String groupid;
     private final String repoid;
     private final String artifactid;
+    private final String propertyName;
 
     @DataBoundConstructor
     public VersionParameterDefinition(String repoid, String groupid,
-            String artifactid, String description) {
+            String artifactid, String propertyName, String description) {
         super(groupid + "." + artifactid, description);
         this.repoid = repoid;
         this.groupid = groupid;
         this.artifactid = artifactid;
+        this.propertyName = propertyName;
     }
 
     @Override
     public VersionParameterDefinition copyWithDefaultValue(ParameterValue defaultValue) {
         if (defaultValue instanceof StringParameterValue) {
-            StringParameterValue value = (StringParameterValue) defaultValue;
+            // create a parameter with the repository id as name
             return new VersionParameterDefinition(getRepoid(), "",
-                    "", getDescription());
+                    "", "", getDescription());
         } else {
             return this;
         }
@@ -88,10 +91,9 @@ public class VersionParameterDefinition extends
             versionStrings.add(0, "LATEST");
             versionStrings.add(0, "RELEASE");
         }
-        
         return versionStrings;
     }
-
+                        
     @Exported
     public String getArtifactid() {
         return artifactid;
@@ -107,9 +109,18 @@ public class VersionParameterDefinition extends
         return groupid;
     }
 
+    @Exported
+    public String getPropertyName() {
+        return propertyName;
+    }
+
     @Override
     public ParameterValue createValue(StaplerRequest req, JSONObject jo) {
-        return new VersionParameterValue(groupid, artifactid, jo.getString("value"));
+        String name = groupid + "." + artifactid;
+        if (propertyName != null && !propertyName.isEmpty()) {
+            name = propertyName;
+        }
+        return new StringParameterValue(name, jo.getString("value"));
     }
 
     @Override
@@ -285,6 +296,8 @@ public class VersionParameterDefinition extends
         sb.append(repoid);
         sb.append(", artifactid=");
         sb.append(artifactid);
+        sb.append(", name=");
+        sb.append(propertyName);
         sb.append(']');
         return sb.toString();
     }
