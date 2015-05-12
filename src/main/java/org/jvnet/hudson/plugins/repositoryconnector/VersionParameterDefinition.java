@@ -5,11 +5,12 @@ import hudson.model.ParameterValue;
 import hudson.model.SimpleParameterDefinition;
 import hudson.model.StringParameterValue;
 import hudson.util.FormValidation;
-import java.io.File;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,8 +20,8 @@ import javax.servlet.ServletException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
-import org.jvnet.hudson.plugins.repositoryconnector.aether.Aether;
 
+import org.jvnet.hudson.plugins.repositoryconnector.aether.Aether;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -28,11 +29,7 @@ import org.kohsuke.stapler.export.Exported;
 import org.sonatype.aether.resolution.VersionRangeResolutionException;
 import org.sonatype.aether.version.Version;
 
-/**
- *
- * @author mrumpf
- *
- */
+@SuppressWarnings("serial")
 public class VersionParameterDefinition extends
         SimpleParameterDefinition {
 
@@ -54,7 +51,7 @@ public class VersionParameterDefinition extends
     @Override
     public VersionParameterDefinition copyWithDefaultValue(ParameterValue defaultValue) {
         if (defaultValue instanceof StringParameterValue) {
-            StringParameterValue value = (StringParameterValue) defaultValue;
+            // TODO: StringParameterValue value = (StringParameterValue) defaultValue;
             return new VersionParameterDefinition(getRepoid(), "",
                     "", getDescription());
         } else {
@@ -76,6 +73,13 @@ public class VersionParameterDefinition extends
                 }
             } catch (VersionRangeResolutionException ex) {
                 log.log(Level.SEVERE, "Could not determine versions", ex);
+            }
+            if (!versionStrings.isEmpty()) {
+                // reverseorder to have the latest versions on top of the list
+                Collections.reverse(versionStrings);
+                // add the default parameters
+                versionStrings.add(0, "LATEST");
+                versionStrings.add(0, "RELEASE");
             }
         }
         return versionStrings;
