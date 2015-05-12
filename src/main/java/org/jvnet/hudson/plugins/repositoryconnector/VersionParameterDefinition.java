@@ -133,14 +133,22 @@ public class VersionParameterDefinition extends
         }
 
         public Repository getRepo(String id) {
-            Repository repo = RepositoryConfiguration.get().getRepositoryMap().get(id);
-            log.fine("getRepo(" + id + ")=" + repo);
+            Repository repo = null;
+            RepositoryConfiguration repoConfig = RepositoryConfiguration.get();
+            if (repoConfig != null) {
+                repo = repoConfig.getRepositoryMap().get(id);
+                log.fine("getRepo(" + id + ")=" + repo);
+            }
             return repo;
         }
 
         public Collection<Repository> getRepos() {
-            Collection<Repository> repos = RepositoryConfiguration.get().getRepos();
-            log.fine("getRepos()=" + repos);
+            Collection<Repository> repos = null;
+            RepositoryConfiguration repoConfig = RepositoryConfiguration.get();
+            if (repoConfig != null) {
+                repos = repoConfig.getRepos();
+                log.fine("getRepos()=" + repos);
+            }
             return repos;
         }
 
