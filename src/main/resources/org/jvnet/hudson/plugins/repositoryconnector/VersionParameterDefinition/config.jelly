@@ -9,6 +9,9 @@
             </j:forEach>
         </select>
     </f:entry>
+    <f:entry title="${%PropertyName}">
+        <f:textbox field="propertyName" value="${instance.propertyName}" />
+    </f:entry>
     <f:entry title="${%GroupId}">
         <f:textbox field="groupid" value="${instance.groupid}" />
     </f:entry>
