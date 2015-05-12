@@ -29,7 +29,6 @@ import org.kohsuke.stapler.export.Exported;
 import org.sonatype.aether.resolution.VersionRangeResolutionException;
 import org.sonatype.aether.version.Version;
 
-@SuppressWarnings("serial")
 public class VersionParameterDefinition extends
         SimpleParameterDefinition {
 
@@ -38,14 +37,16 @@ public class VersionParameterDefinition extends
     private final String groupid;
     private final String repoid;
     private final String artifactid;
+    private final String propertyName;
 
     @DataBoundConstructor
     public VersionParameterDefinition(String repoid, String groupid,
-            String artifactid, String description) {
+            String artifactid, String propertyName, String description) {
         super(groupid + "." + artifactid, description);
         this.repoid = repoid;
         this.groupid = groupid;
         this.artifactid = artifactid;
+        this.propertyName = propertyName;
     }
 
     @Override
@@ -53,7 +54,7 @@ public class VersionParameterDefinition extends
         if (defaultValue instanceof StringParameterValue) {
             // TODO: StringParameterValue value = (StringParameterValue) defaultValue;
             return new VersionParameterDefinition(getRepoid(), "",
-                    "", getDescription());
+                    "", "", getDescription());
         } else {
             return this;
         }
@@ -100,9 +101,14 @@ public class VersionParameterDefinition extends
         return groupid;
     }
 
+    @Exported
+    public String getPropertyName() {
+        return propertyName;
+    }
+
     @Override
     public ParameterValue createValue(StaplerRequest req, JSONObject jo) {
-        return new VersionParameterValue(groupid, artifactid, jo.getString("value"));
+        return new VersionParameterValue(groupid, artifactid, propertyName, jo.getString("value"));
     }
 
     @Override
