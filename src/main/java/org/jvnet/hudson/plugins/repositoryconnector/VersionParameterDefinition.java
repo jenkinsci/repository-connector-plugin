@@ -5,8 +5,8 @@ import hudson.model.ParameterValue;
 import hudson.model.SimpleParameterDefinition;
 import hudson.model.StringParameterValue;
 import hudson.util.FormValidation;
-import java.io.File;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,8 +19,8 @@ import javax.servlet.ServletException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
-import org.jvnet.hudson.plugins.repositoryconnector.aether.Aether;
 
+import org.jvnet.hudson.plugins.repositoryconnector.aether.Aether;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -41,14 +41,16 @@ public class VersionParameterDefinition extends
     private final String groupid;
     private final String repoid;
     private final String artifactid;
+    private boolean reverseOrder=true;
 
     @DataBoundConstructor
     public VersionParameterDefinition(String repoid, String groupid,
-            String artifactid, String description) {
+            String artifactid, String description,boolean reverseOrder) {
         super(groupid + "." + artifactid, description);
         this.repoid = repoid;
         this.groupid = groupid;
         this.artifactid = artifactid;
+        this.reverseOrder = reverseOrder;
     }
 
     @Override
@@ -56,12 +58,17 @@ public class VersionParameterDefinition extends
         if (defaultValue instanceof StringParameterValue) {
             StringParameterValue value = (StringParameterValue) defaultValue;
             return new VersionParameterDefinition(getRepoid(), "",
-                    "", getDescription());
+                    "", getDescription(),true);
         } else {
             return this;
         }
     }
 
+    public boolean reverseOrder() {
+    	return reverseOrder;
+    }
+    
+    
     @Exported
     public List<String> getChoices() {
         Repository r = DESCRIPTOR.getRepo(repoid);
@@ -71,8 +78,12 @@ public class VersionParameterDefinition extends
             Aether aether = new Aether(DESCRIPTOR.getRepos(), localRepo);
             try {
                 List<Version> versions = aether.resolveVersions(groupid, artifactid);
-                for (Version version : versions) {
-                    versionStrings.add(version.toString());
+                while(versions.size()>0) {
+                	if(reverseOrder) {
+                		versionStrings.add(versions.remove(0).toString());
+                	} else {
+                		versionStrings.add(0,versions.remove(0).toString());
+                	}
                 }
             } catch (VersionRangeResolutionException ex) {
                 log.log(Level.SEVERE, "Could not determine versions", ex);

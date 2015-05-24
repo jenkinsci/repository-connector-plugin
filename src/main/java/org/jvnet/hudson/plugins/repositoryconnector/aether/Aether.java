@@ -31,14 +31,11 @@ import org.jvnet.hudson.plugins.repositoryconnector.Repository;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.artifact.Artifact;
-import org.sonatype.aether.collection.CollectRequest;
 import org.sonatype.aether.collection.DependencyCollectionException;
 import org.sonatype.aether.connector.wagon.WagonProvider;
 import org.sonatype.aether.connector.wagon.WagonRepositoryConnectorFactory;
 import org.sonatype.aether.deployment.DeployRequest;
 import org.sonatype.aether.deployment.DeploymentException;
-import org.sonatype.aether.graph.Dependency;
-import org.sonatype.aether.graph.DependencyNode;
 import org.sonatype.aether.installation.InstallRequest;
 import org.sonatype.aether.installation.InstallationException;
 import org.sonatype.aether.repository.Authentication;
@@ -46,17 +43,16 @@ import org.sonatype.aether.repository.LocalRepository;
 import org.sonatype.aether.repository.Proxy;
 import org.sonatype.aether.repository.RemoteRepository;
 import org.sonatype.aether.repository.RepositoryPolicy;
+import org.sonatype.aether.resolution.ArtifactRequest;
 import org.sonatype.aether.resolution.ArtifactResolutionException;
-import org.sonatype.aether.resolution.DependencyRequest;
+import org.sonatype.aether.resolution.ArtifactResult;
 import org.sonatype.aether.resolution.DependencyResolutionException;
-import org.sonatype.aether.resolution.DependencyResult;
 import org.sonatype.aether.resolution.VersionRangeRequest;
 import org.sonatype.aether.resolution.VersionRangeResolutionException;
 import org.sonatype.aether.resolution.VersionRangeResult;
 import org.sonatype.aether.spi.connector.RepositoryConnectorFactory;
 import org.sonatype.aether.util.DefaultRepositorySystemSession;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
-import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
 import org.sonatype.aether.util.repository.DefaultProxySelector;
 import org.sonatype.aether.version.Version;
 
@@ -184,24 +180,20 @@ public class Aether {
         return session;
     }
 
-    public AetherResult resolve(String groupId, String artifactId, String classifier, String extension, String version)
-            throws DependencyCollectionException, ArtifactResolutionException, DependencyResolutionException {
+    public AetherResult resolve(String groupId, String artifactId, String classifier, String extension, String version) throws DependencyCollectionException, ArtifactResolutionException, DependencyResolutionException {
         RepositorySystemSession session = newSession();
-        Dependency dependency = new Dependency(new DefaultArtifact(groupId, artifactId, classifier, extension, version), "provided");
 
-        CollectRequest collectRequest = new CollectRequest(dependency, repositories);
-
-        // collectRequest.setRoot(dependency);
-
-        DependencyNode rootNode = repositorySystem.collectDependencies(session, collectRequest).getRoot();
-
-        DependencyRequest dependencyRequest = new DependencyRequest(rootNode, new ExcludeTranisitiveDependencyFilter());
-        DependencyResult resolvedDependencies = repositorySystem.resolveDependencies(session, dependencyRequest);
-
-        PreorderNodeListGenerator nlg = new PreorderNodeListGenerator();
-        rootNode.accept(nlg);
-
-        return new AetherResult(rootNode, nlg.getFiles());
+        ArtifactRequest aReq = new ArtifactRequest();
+        aReq.setArtifact(new DefaultArtifact(groupId, artifactId, extension, version));
+        aReq.setRepositories(repositories);
+        
+        ArtifactResult aRes = repositorySystem.resolveArtifact(session, aReq);
+        List<File> files = new ArrayList<File>();
+        files.add(aRes.getArtifact().getFile());
+        
+        AetherResult out = new AetherResult(null, files);
+        
+        return out;
     }
 
     public List<Version> resolveVersions(String groupId, String artifactId)
