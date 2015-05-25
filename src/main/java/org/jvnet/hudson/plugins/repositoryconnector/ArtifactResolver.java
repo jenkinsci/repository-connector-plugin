@@ -149,11 +149,17 @@ public class ArtifactResolver extends Builder implements Serializable {
                 System.err.println("actual version is " + version);
                 
                 if(version==null) {
+                	version = "LATEST";
+                	/**
                 	List<Version> versions = aether.resolveVersions(groupId, artifactId);
+                	for(Version v : versions) {
+                		logger.println("available version: "+v.getClass().getName()+" / "+v.toString());
+                	}
                 	if(versions.size()>0) {
                 		version = versions.get(versions.size()-1).toString();
                 		logger.println("no version set, resolved version: "+version);
                 	}
+                	**/
                 }
 
                 AetherResult result = aether.resolve(groupId, artifactId, classifier, extension, version);
