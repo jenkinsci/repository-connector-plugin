@@ -72,7 +72,9 @@ public class VersionParameterDefinition extends
     
     @Exported
     public List<String> getChoices() {
+    	List<Repository> repos = new ArrayList<Respository>();
         Repository r = DESCRIPTOR.getRepo(repoid);
+        repos.add(r);
         log.info("VersionParameterDefinition: repo is "+r);
         log.info("VersionParameterDefinition: repo is "+r.getUrl());
         
@@ -83,7 +85,7 @@ public class VersionParameterDefinition extends
             log.info("VersionParameterDefinition: local repo "+localRepo.getAbsolutePath());
             
             Aether aether = new Aether(
-            		DESCRIPTOR.getRepos(), localRepo, null, false, 
+            		repos, localRepo, null, false, 
             		RepositoryPolicy.UPDATE_POLICY_ALWAYS, 
                     RepositoryPolicy.CHECKSUM_POLICY_FAIL, 
                     RepositoryPolicy.UPDATE_POLICY_ALWAYS, 
