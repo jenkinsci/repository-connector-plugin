@@ -36,6 +36,7 @@ import org.sonatype.aether.collection.DependencyCollectionException;
 import org.sonatype.aether.repository.RepositoryPolicy;
 import org.sonatype.aether.resolution.ArtifactResolutionException;
 import org.sonatype.aether.resolution.DependencyResolutionException;
+import org.sonatype.aether.version.Version;
 
 /**
  * This builder allows to resolve artifacts from a repository and copy it to any location.
@@ -142,7 +143,18 @@ public class ArtifactResolver extends Builder implements Serializable {
                 final String targetFileName = TokenMacro.expandAll(build, listener, a.getTargetFileName());
 
                 String version = TokenMacro.expandAll(build, listener, a.getVersion());
+                System.err.println("configured version is " + version);
+
                 version = checkVersionOverride(build, listener, groupId, artifactId, version);
+                System.err.println("actual version is " + version);
+                
+                if(version==null) {
+                	List<Version> versions = aether.resolveVersions(groupId, artifactId);
+                	if(versions.size()>0) {
+                		version = versions.get(versions.size()-1).toString();
+                		logger.println("no version set, resolved version: "+version);
+                	}
+                }
 
                 AetherResult result = aether.resolve(groupId, artifactId, classifier, extension, version);
 

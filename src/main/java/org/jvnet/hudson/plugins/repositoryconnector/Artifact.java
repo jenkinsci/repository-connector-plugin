@@ -49,6 +49,11 @@ public class Artifact implements Serializable {
      * @return the version
      */
     public String getVersion() {
+    	if(version==null) {
+    		return null;
+    	} else if (version.trim().length()==0) {
+    		return null;
+    	}
         return version;
     }
 
