@@ -6,6 +6,10 @@
 		<f:checkbox name="failOnError" checked="${instance.failOnError()}" />
 	</f:entry>
 
+	<f:entry title="Repository" field="repoid">
+		<f:select />
+	</f:entry>
+
 	<f:entry title="${%EnableRepositoryLogging}" description="${%EnableRepositoryLoggingDescription}">
 		<f:checkbox name="enableRepoLogging" checked="${instance.enableRepoLogging()}" />
 	</f:entry>

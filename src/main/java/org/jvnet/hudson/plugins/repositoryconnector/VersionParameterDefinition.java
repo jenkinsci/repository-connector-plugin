@@ -5,12 +5,14 @@ import hudson.model.ParameterValue;
 import hudson.model.SimpleParameterDefinition;
 import hudson.model.StringParameterValue;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,11 +44,10 @@ public class VersionParameterDefinition extends
     private final String groupid;
     private final String repoid;
     private final String artifactid;
-    private boolean reverseOrder=true;
+    private final boolean reverseOrder;
 
     @DataBoundConstructor
-    public VersionParameterDefinition(String repoid, String groupid,
-            String artifactid, String description,boolean reverseOrder) {
+    public VersionParameterDefinition(String repoid, String groupid, String artifactid, String description,boolean reverseOrder) {
         super(groupid + "." + artifactid, description);
         this.repoid = repoid;
         this.groupid = groupid;
@@ -69,39 +70,47 @@ public class VersionParameterDefinition extends
     	return reverseOrder;
     }
     
+    public Collection<Repository> getRepos(String repoid) {
+    	List<Repository> out = new ArrayList<Repository>();
+    	
+    	for(Map.Entry<String,Repository> e : RepositoryConfiguration.get().getRepositoryMap().entrySet()) {
+    		if(repoid.compareTo("ALL")==0 || repoid.compareTo(e.getKey())==0) {
+    			out.add(e.getValue());
+    		}
+    	}
+    	return out;
+    }
+    
     
     @Exported
     public List<String> getChoices() {
-    	List<Repository> repos = new ArrayList<Respository>();
-        Repository r = DESCRIPTOR.getRepo(repoid);
-        repos.add(r);
-        log.info("VersionParameterDefinition: repo is "+r);
-        log.info("VersionParameterDefinition: repo is "+r.getUrl());
-        
-        List<String> versionStrings = new ArrayList<String>();
-        if (r != null) {
+    	Collection<Repository> repos = getRepos(repoid);
 
-        	File localRepo = RepositoryConfiguration.get().getLocalRepoPath();
-            log.info("VersionParameterDefinition: local repo "+localRepo.getAbsolutePath());
-            
-            Aether aether = new Aether(
-            		repos, localRepo, null, false, 
-            		RepositoryPolicy.UPDATE_POLICY_ALWAYS, 
-                    RepositoryPolicy.CHECKSUM_POLICY_FAIL, 
-                    RepositoryPolicy.UPDATE_POLICY_ALWAYS, 
-                    RepositoryPolicy.CHECKSUM_POLICY_FAIL);
-            try {
-                List<Version> versions = aether.resolveVersions(groupid, artifactid);
-                while(versions.size()>0) {
-                	if(reverseOrder) {
-                		versionStrings.add(versions.remove(0).toString());
-                	} else {
-                		versionStrings.add(0,versions.remove(0).toString());
-                	}
-                }
-            } catch (VersionRangeResolutionException ex) {
-                log.log(Level.SEVERE, "Could not determine versions", ex);
+    	List<String> versionStrings = new ArrayList<String>();
+
+    	File localRepo = RepositoryConfiguration.get().getLocalRepoPath();
+        log.info("VersionParameterDefinition: local repo "+localRepo.getAbsolutePath());
+        
+        Aether aether = new Aether(
+        		repos, localRepo, null, false, 
+        		RepositoryPolicy.UPDATE_POLICY_ALWAYS, 
+                RepositoryPolicy.CHECKSUM_POLICY_FAIL, 
+                RepositoryPolicy.UPDATE_POLICY_ALWAYS, 
+                RepositoryPolicy.CHECKSUM_POLICY_FAIL);
+        try {
+            List<Version> versions = aether.resolveVersions(groupid, artifactid);
+            while(versions.size()>0) {
+            	if(reverseOrder) {
+            		versionStrings.add(0,versions.remove(0).toString());
+            	} else {
+            		versionStrings.add(versions.remove(0).toString());
+            	}
             }
+        } catch (VersionRangeResolutionException ex) {
+            log.log(Level.SEVERE, "Could not determine versions", ex);
+        }
+        if(versionStrings.size()==0) {
+        	throw new RuntimeException("no versions found");
         }
         return versionStrings;
     }
@@ -147,32 +156,23 @@ public class VersionParameterDefinition extends
             load();
         }
 
-        public Repository getRepo(String id) {
-            Repository repo = RepositoryConfiguration.get().getRepositoryMap().get(id);
-            log.fine("getRepo(" + id + ")=" + repo);
-            return repo;
-        }
-
-        public Collection<Repository> getRepos() {
-            Collection<Repository> repos = RepositoryConfiguration.get().getRepos();
-            log.fine("getRepos()=" + repos);
-            return repos;
+        public ListBoxModel doFillRepoidItems() {
+        	ListBoxModel repoList = new ListBoxModel();
+        	repoList.add("ALL","ALL");
+        	for(String v : RepositoryConfiguration.get().getRepositoryMap().keySet()) {
+        		repoList.add(v,v);
+        	}
+            return repoList; 
         }
 
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) {
             if (formData.has("repo")) {
                 try {
-                    List l = JSONArray.toList(
-                            formData.getJSONArray("repo"), Repository.class);
-                    // TODO: ???
+                    List l = JSONArray.toList(formData.getJSONArray("repo"), Repository.class);
                 } catch (JSONException ex) {
-                    Repository r = (Repository) JSONObject.toBean(
-                            formData.getJSONObject("repo"), Repository.class);
-                    // TODO: ???
+                    Repository r = (Repository) JSONObject.toBean( formData.getJSONObject("repo"), Repository.class);
                 }
-            } else {
-                // TODO: Should not happen
             }
 
             save();
@@ -185,43 +185,6 @@ public class VersionParameterDefinition extends
             FormValidation result = FormValidation.ok();
             if (groupid == null || groupid.isEmpty()) {
                 result = FormValidation.error(Messages.EmptyGroupId());
-            } else {
-                if (artifactid != null && !artifactid.isEmpty() && repoid != null && !repoid.isEmpty()) {
-                    result = checkPath(artifactid, groupid, repoid);
-                }
-            }
-            return result;
-        }
-
-        public FormValidation doCheckArtifactid(
-                @QueryParameter String artifactid,
-                @QueryParameter String groupid, @QueryParameter String repoid)
-                throws IOException {
-            FormValidation result = FormValidation.ok();
-            if (artifactid == null || artifactid.isEmpty()) {
-                result = FormValidation.error(Messages.EmptyArtifactId());
-            } else {
-                if (groupid != null && !groupid.isEmpty() && repoid != null && !repoid.isEmpty()) {
-                    result = checkPath(artifactid, groupid, repoid);
-                }
-            }
-            return result;
-        }
-
-        private FormValidation checkPath(String artifactid, String groupid,
-                String repoid) {
-            FormValidation result = FormValidation.ok();
-            File localRepo = RepositoryConfiguration.get().getLocalRepoPath();
-            Aether aether = new Aether(DESCRIPTOR.getRepos(), localRepo);
-            try {
-                List<Version> versions = aether.resolveVersions(groupid, artifactid);
-                if (versions.isEmpty()) {
-                    result = FormValidation.error(Messages.NoVersions() + " " + groupid + "." + artifactid);
-                    log.log(Level.FINE, "No versions found for " + groupid + "." + artifactid);
-                }
-            } catch (VersionRangeResolutionException ex) {
-                result = FormValidation.error(Messages.NoVersions() + " " + groupid + "." + artifactid);
-                log.log(Level.SEVERE, "Could not determine versions for " + groupid + "." + artifactid, ex);
             }
             return result;
         }
@@ -254,20 +217,13 @@ public class VersionParameterDefinition extends
             return result;
         }
 
-        public FormValidation doTestConnection(@QueryParameter String baseurl,
-                @QueryParameter String username, @QueryParameter String password)
+        public FormValidation doTestConnection(@QueryParameter String baseurl, @QueryParameter String username, @QueryParameter String password)
                 throws IOException, ServletException {
             try {
-                if (true /*MavenRepositoryClient.testConnection(baseurl, username,
-                         password)*/) {
-                    return FormValidation.ok(Messages.Success());
-                } else {
-                    return FormValidation.error(Messages.ConnectionFailed());
-                }
+            	return FormValidation.ok(Messages.Success());
             } catch (Exception e) {
                 log.log(Level.SEVERE, "Client error: " + e.getMessage(), e);
-                return FormValidation.error(Messages.ClientError()
-                        + e.getMessage());
+                return FormValidation.error(Messages.ClientError() + e.getMessage());
             }
         }
 

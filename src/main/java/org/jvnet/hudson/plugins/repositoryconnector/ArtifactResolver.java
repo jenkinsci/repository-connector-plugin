@@ -4,13 +4,14 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.BuildListener;
+import hudson.model.ParameterValue;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
-import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
+import hudson.util.ListBoxModel;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +20,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,14 +54,16 @@ public class ArtifactResolver extends Builder implements Serializable {
     public List<Artifact> artifacts;
     public boolean failOnError = true;
     public boolean enableRepoLogging = true;
+    public final String repoid;
     public final String snapshotUpdatePolicy;
     public final String releaseUpdatePolicy;
     public final String snapshotChecksumPolicy;
     public final String releaseChecksumPolicy;
     
     @DataBoundConstructor
-    public ArtifactResolver(String targetDirectory, List<Artifact> artifacts, boolean failOnError, boolean enableRepoLogging, String snapshotUpdatePolicy,
+    public ArtifactResolver(String repoid, String targetDirectory, List<Artifact> artifacts, boolean failOnError, boolean enableRepoLogging, String snapshotUpdatePolicy,
             String snapshotChecksumPolicy, String releaseUpdatePolicy, String releaseChecksumPolicy) {
+    	this.repoid = repoid;
         this.artifacts = artifacts != null ? artifacts : new ArrayList<Artifact>();
         this.targetDirectory = StringUtils.isBlank(targetDirectory) ? DEFAULT_TARGET : targetDirectory;
         this.failOnError = failOnError;
@@ -74,6 +78,10 @@ public class ArtifactResolver extends Builder implements Serializable {
         return StringUtils.isBlank(targetDirectory) ? DEFAULT_TARGET : targetDirectory;
     }
 
+    public String repoid() {
+    	return repoid;
+    }
+    
     public boolean failOnError() {
         return failOnError;
     }
@@ -90,12 +98,24 @@ public class ArtifactResolver extends Builder implements Serializable {
     public List<Artifact> getArtifacts() {
         return artifacts;
     }
+    
+    public Collection<Repository> getRepos(AbstractBuild<?,?> build, String repoid) {
+    	List<Repository> out = new ArrayList<Repository>();
+    	
+    	for(Map.Entry<String,Repository> e : RepositoryConfiguration.get().getRepositoryMap().entrySet()) {
+    		if(repoid.compareTo("ALL")==0 || repoid.compareTo(e.getKey())==0) {
+    			out.add(e.getValue());
+    		}
+    	}
+    	return out;
+    }
+    
 
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
 
         final PrintStream logger = listener.getLogger();
-        final Collection<Repository> repositories = RepositoryConfiguration.get().getRepos();
+        final Collection<Repository> repositories = getRepos(build, repoid);
 
         File localRepo = RepositoryConfiguration.get().getLocalRepoPath();
         boolean failed = download(build, listener, logger, repositories, localRepo);
@@ -106,12 +126,10 @@ public class ArtifactResolver extends Builder implements Serializable {
         return true;
     }
 
-    private boolean download(AbstractBuild<?, ?> build, BuildListener listener, final PrintStream logger, final Collection<Repository> repositories,
-            File localRepository) {
+    private boolean download(AbstractBuild<?, ?> build, BuildListener listener, final PrintStream logger, final Collection<Repository> repositories, File localRepository) {
         boolean hasError = false;
 
-        Aether aether = new Aether(repositories, localRepository, logger, enableRepoLogging, snapshotUpdatePolicy, snapshotChecksumPolicy, releaseUpdatePolicy,
-                releaseChecksumPolicy);
+        Aether aether = new Aether(repositories, localRepository, logger, enableRepoLogging, snapshotUpdatePolicy, snapshotChecksumPolicy, releaseUpdatePolicy, releaseChecksumPolicy);
 
         for (Artifact a : artifacts) {
 
@@ -213,6 +231,15 @@ public class ArtifactResolver extends Builder implements Serializable {
 
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
             return true;
+        }
+        
+        public ListBoxModel doFillRepoidItems() {
+        	ListBoxModel repoList = new ListBoxModel();
+        	repoList.add("ALL","ALL");
+        	for(String v : RepositoryConfiguration.get().getRepositoryMap().keySet()) {
+        		repoList.add(v,v);
+        	}
+            return repoList; 
         }
 
         public String getDisplayName() {

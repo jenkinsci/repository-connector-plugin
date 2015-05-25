@@ -15,12 +15,11 @@ import org.kohsuke.stapler.DataBoundConstructor;
  */
 public class VersionParameterValue extends StringParameterValue {
 
-    private static final Logger log = Logger
-            .getLogger(VersionParameterValue.class.getName());
+    private static final Logger log = Logger.getLogger(VersionParameterValue.class.getName());
 
     private final String groupid;
     private final String artifactid;
-
+    
     public String getGroupid() {
         return groupid;
     }
