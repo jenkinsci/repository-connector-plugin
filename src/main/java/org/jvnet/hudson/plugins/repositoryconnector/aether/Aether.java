@@ -70,13 +70,13 @@ public class Aether {
     public String releaseChecksumPolicy;
 
     public Aether(Collection<Repository> remoteRepositories, File localRepository) {
-            this(remoteRepositories, localRepository, null, false, RepositoryPolicy.UPDATE_POLICY_ALWAYS, 
-                    RepositoryPolicy.CHECKSUM_POLICY_WARN, RepositoryPolicy.UPDATE_POLICY_ALWAYS, RepositoryPolicy.CHECKSUM_POLICY_WARN);
+            this(remoteRepositories, localRepository, null, false, RepositoryPolicy.UPDATE_POLICY_NEVER, 
+                    RepositoryPolicy.CHECKSUM_POLICY_IGNORE, RepositoryPolicy.UPDATE_POLICY_NEVER, RepositoryPolicy.CHECKSUM_POLICY_IGNORE);
         }
 
     public Aether(Collection<Repository> remoteRepositories, File localRepository, PrintStream logger, boolean extendedLogging,
             String snapshotUpdatePolicy, String snapshotChecksumPolicy, String releaseUpdatePolicy, String releaseChecksumPolicy) {
-        this.logger = logger;
+        this.logger = logger==null?System.out:logger;
         this.repositorySystem = newManualSystem();
         this.localRepository = new LocalRepository(localRepository);
         this.extendedLogging = extendedLogging;
@@ -198,16 +198,19 @@ public class Aether {
 
     public List<Version> resolveVersions(String groupId, String artifactId)
             throws VersionRangeResolutionException {
-        RepositorySystemSession session = newSession();
+
+    	RepositorySystemSession session = newSession();
+        ((MavenRepositorySystemSession)session).setUpdatePolicy(RepositoryPolicy.UPDATE_POLICY_ALWAYS);
+
         Artifact artifact = new DefaultArtifact(groupId, artifactId, null, null, "[0,)");
 
-                VersionRangeRequest rangeRequest = new VersionRangeRequest();
-                rangeRequest.setArtifact( artifact );
-                rangeRequest.setRepositories( repositories );
+        VersionRangeRequest rangeRequest = new VersionRangeRequest();
+        rangeRequest.setArtifact(artifact);
+        rangeRequest.setRepositories(repositories);
 
-                VersionRangeResult rangeResult = repositorySystem.resolveVersionRange( session, rangeRequest );
+        VersionRangeResult rangeResult = repositorySystem.resolveVersionRange( session, rangeRequest );
 
-                return rangeResult.getVersions();
+        return rangeResult.getVersions();
     }
 
     public void install(Artifact artifact, Artifact pom) throws InstallationException {

@@ -25,6 +25,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
+import org.sonatype.aether.repository.RepositoryPolicy;
 import org.sonatype.aether.resolution.VersionRangeResolutionException;
 import org.sonatype.aether.version.Version;
 
@@ -72,10 +73,21 @@ public class VersionParameterDefinition extends
     @Exported
     public List<String> getChoices() {
         Repository r = DESCRIPTOR.getRepo(repoid);
+        log.info("VersionParameterDefinition: repo is "+r);
+        log.info("VersionParameterDefinition: repo is "+r.getUrl());
+        
         List<String> versionStrings = new ArrayList<String>();
         if (r != null) {
-            File localRepo = RepositoryConfiguration.get().getLocalRepoPath();
-            Aether aether = new Aether(DESCRIPTOR.getRepos(), localRepo);
+
+        	File localRepo = RepositoryConfiguration.get().getLocalRepoPath();
+            log.info("VersionParameterDefinition: local repo "+localRepo.getAbsolutePath());
+            
+            Aether aether = new Aether(
+            		DESCRIPTOR.getRepos(), localRepo, null, false, 
+            		RepositoryPolicy.UPDATE_POLICY_ALWAYS, 
+                    RepositoryPolicy.CHECKSUM_POLICY_FAIL, 
+                    RepositoryPolicy.UPDATE_POLICY_ALWAYS, 
+                    RepositoryPolicy.CHECKSUM_POLICY_FAIL);
             try {
                 List<Version> versions = aether.resolveVersions(groupid, artifactid);
                 while(versions.size()>0) {
