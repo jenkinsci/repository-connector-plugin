@@ -116,13 +116,14 @@ public class Aether {
                 repoObj.setAuthentication(authentication);
             }
             repoObj.setRepositoryManager(repo.isRepositoryManager());
+            repoObj.setPolicy(true, snapshotPolicy);
+            repoObj.setPolicy(false, releasePolicy);
+            
             if (repoObj.isRepositoryManager()) {
                 // well, in case of repository manager, let's have a look one step deeper
                 // @see org.sonatype.aether.impl.internal.DefaultMetadataResolver#getEnabledSourceRepositories(org.sonatype.aether.repository.RemoteRepository, org.sonatype.aether.metadata.Metadata.Nature)
                 repoObj.setMirroredRepositories(resolveMirrors(repoObj));
             }
-            repoObj.setPolicy(true, snapshotPolicy);
-            repoObj.setPolicy(false, releasePolicy);
             repositories.add(repoObj);
         }
     }
