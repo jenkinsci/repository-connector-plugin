@@ -172,6 +172,7 @@ public class Aether {
     private RepositorySystemSession newSession() {
         MavenRepositorySystemSession session = new MavenRepositorySystemSession();
         session.setLocalRepositoryManager(repositorySystem.newLocalRepositoryManager(localRepository));
+        
         if (extendedLogging && logger != null) {
             session.setTransferListener(new ConsoleTransferListener(logger));
             session.setRepositoryListener(new ConsoleRepositoryListener(logger));
@@ -184,7 +185,8 @@ public class Aether {
         RepositorySystemSession session = newSession();
 
         ArtifactRequest aReq = new ArtifactRequest();
-        aReq.setArtifact(new DefaultArtifact(groupId, artifactId, extension, version));
+        Artifact a = new DefaultArtifact(groupId, artifactId, extension, version);
+        aReq.setArtifact(a);
         aReq.setRepositories(repositories);
         
         ArtifactResult aRes = repositorySystem.resolveArtifact(session, aReq);

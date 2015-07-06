@@ -143,10 +143,8 @@ public class ArtifactResolver extends Builder implements Serializable {
                 final String targetFileName = TokenMacro.expandAll(build, listener, a.getTargetFileName());
 
                 String version = TokenMacro.expandAll(build, listener, a.getVersion());
-                System.err.println("configured version is " + version);
 
                 version = checkVersionOverride(build, listener, groupId, artifactId, version);
-                System.err.println("actual version is " + version);
                 
                 if(version==null) {
                 	version = "LATEST";
