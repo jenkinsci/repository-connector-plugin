@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -31,36 +32,33 @@ import org.sonatype.aether.repository.RepositoryPolicy;
 import org.sonatype.aether.resolution.VersionRangeResolutionException;
 import org.sonatype.aether.version.Version;
 
-/**
- *
- * @author mrumpf
- *
- */
-public class VersionParameterDefinition extends
-        SimpleParameterDefinition {
+public class VersionParameterDefinition extends SimpleParameterDefinition {
 
-    private static final Logger log = Logger.getLogger(VersionParameterDefinition.class.getName());
+	private static final long serialVersionUID = -147143040052020071L;
+
+	private static final Logger log = Logger.getLogger(VersionParameterDefinition.class.getName());
 
     private final String groupid;
     private final String repoid;
     private final String artifactid;
     private final boolean reverseOrder;
+    private final String propertyName;
 
     @DataBoundConstructor
-    public VersionParameterDefinition(String repoid, String groupid, String artifactid, String description,boolean reverseOrder) {
+    public VersionParameterDefinition(String repoid, String groupid, String artifactid, String propertyName, String description, boolean reverseOrder) {
         super(groupid + "." + artifactid, description);
         this.repoid = repoid;
         this.groupid = groupid;
         this.artifactid = artifactid;
         this.reverseOrder = reverseOrder;
+        this.propertyName = propertyName;
     }
 
     @Override
     public VersionParameterDefinition copyWithDefaultValue(ParameterValue defaultValue) {
         if (defaultValue instanceof StringParameterValue) {
-            StringParameterValue value = (StringParameterValue) defaultValue;
-            return new VersionParameterDefinition(getRepoid(), "",
-                    "", getDescription(),true);
+            // TODO: StringParameterValue value = (StringParameterValue) defaultValue;
+            return new VersionParameterDefinition(getRepoid(), getGroupid(), getArtifactid(), "", getDescription(),true);
         } else {
             return this;
         }
@@ -112,6 +110,23 @@ public class VersionParameterDefinition extends
         if(versionStrings.size()==0) {
         	throw new RuntimeException("no versions found");
         }
+        if (!versionStrings.isEmpty()) {
+            // reverseorder to have the latest versions on top of the list
+        	if(reverseOrder) {
+        		Collections.reverse(versionStrings);
+        	}
+            // add the default parameters
+        	// commented this because nexus is a bitch when it comes to dealing with 
+        	// these - "latest" is always the latest according to the metadata, which
+        	// doesn't really get updated. see 
+        	//
+        	//  http://stackoverflow.com/questions/14165784/maven-nexus-v-latest-not-working
+        	//  http://www.blackpepper.co.uk/nexus-support-for-latest-version/
+        	//  http://articles.javatalks.ru/articles/32
+        	//
+            //versionStrings.add(0, "LATEST");
+            //versionStrings.add(0, "RELEASE");
+        }
         return versionStrings;
     }
 
@@ -130,9 +145,14 @@ public class VersionParameterDefinition extends
         return groupid;
     }
 
+    @Exported
+    public String getPropertyName() {
+        return propertyName;
+    }
+
     @Override
     public ParameterValue createValue(StaplerRequest req, JSONObject jo) {
-        return new VersionParameterValue(groupid, artifactid, jo.getString("value"));
+        return new VersionParameterValue(groupid, artifactid, propertyName, jo.getString("value"));
     }
 
     @Override
@@ -162,7 +182,27 @@ public class VersionParameterDefinition extends
         	for(String v : RepositoryConfiguration.get().getRepositoryMap().keySet()) {
         		repoList.add(v,v);
         	}
-            return repoList; 
+            return repoList;
+        }
+
+        public Repository getRepo(String id) {
+            Repository repo = null;
+            RepositoryConfiguration repoConfig = RepositoryConfiguration.get();
+            if (repoConfig != null) {
+                repo = repoConfig.getRepositoryMap().get(id);
+                log.fine("getRepo(" + id + ")=" + repo);
+            }
+            return repo;
+        }
+
+        public Collection<Repository> getRepos() {
+            Collection<Repository> repos = null;
+            RepositoryConfiguration repoConfig = RepositoryConfiguration.get();
+            if (repoConfig != null) {
+                repos = repoConfig.getRepos();
+                log.fine("getRepos()=" + repos);
+            }
+            return repos;
         }
 
         @Override

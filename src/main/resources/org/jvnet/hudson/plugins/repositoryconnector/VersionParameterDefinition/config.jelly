@@ -2,9 +2,16 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
          xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"
          xmlns:i="jelly:fmt" xmlns:p="/lib/hudson/project">
-	<f:entry title="Repository" field="repoid">
-		<f:select value="${instance.repoid}"/>
-	</f:entry>
+    <f:entry title="${%Repository}">
+        <select class="setting-input" name="repoid">
+            <j:forEach var="s" items="${descriptor.repos}">
+                <f:option selected="${s.id==instance.repoid}" value="${s.id}">${s.id}</f:option>
+            </j:forEach>
+        </select>
+    </f:entry>
+    <f:entry title="${%PropertyName}">
+        <f:textbox field="propertyName" value="${instance.propertyName}" />
+    </f:entry>
     <f:entry title="${%GroupId}">
         <f:textbox field="groupid" value="${instance.groupid}" />
     </f:entry>
