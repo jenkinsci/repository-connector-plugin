@@ -72,7 +72,7 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
     	List<Repository> out = new ArrayList<Repository>();
     	
     	for(Map.Entry<String,Repository> e : RepositoryConfiguration.get().getRepositoryMap().entrySet()) {
-    		if(repoid.compareTo("ALL")==0 || repoid.compareTo(e.getKey())==0) {
+    		if("ALL".equals(repoid) || repoid.equals(e.getKey())) {
     			out.add(e.getValue());
     		}
     	}

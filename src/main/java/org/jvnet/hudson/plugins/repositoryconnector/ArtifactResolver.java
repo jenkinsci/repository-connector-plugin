@@ -104,7 +104,7 @@ public class ArtifactResolver extends Builder implements Serializable {
     	List<Repository> out = new ArrayList<Repository>();
     	
     	for(Map.Entry<String,Repository> e : RepositoryConfiguration.get().getRepositoryMap().entrySet()) {
-    		if(repoid.compareTo("ALL")==0 || repoid.compareTo(e.getKey())==0) {
+    		if("ALL".equals(repoid) || repoid.equals(e.getKey())) {
     			out.add(e.getValue());
     		}
     	}
@@ -120,7 +120,7 @@ public class ArtifactResolver extends Builder implements Serializable {
 
         File localRepo = RepositoryConfiguration.get().getLocalRepoPath();
         boolean failed = download(build, listener, logger, repositories, localRepo);
-
+        
         if (failed && failOnError) {
             return false;
         }
@@ -148,6 +148,7 @@ public class ArtifactResolver extends Builder implements Serializable {
                 
                 if(version==null) {
                 	version = "LATEST";
+             		logger.println("no version set, resolved version: "+version);
                 	/**
                 	List<Version> versions = aether.resolveVersions(groupId, artifactId);
                 	for(Version v : versions) {
@@ -159,6 +160,7 @@ public class ArtifactResolver extends Builder implements Serializable {
                 	}
                 	**/
                 }
+         		logger.println("version is: "+version);
 
                 AetherResult result = aether.resolve(groupId, artifactId, classifier, extension, version);
 
