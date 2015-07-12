@@ -36,7 +36,7 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
 
 	private static final long serialVersionUID = -147143040052020071L;
 
-	private static final Logger log = Logger.getLogger(VersionParameterDefinition.class.getName());
+	private static final Logger LOG = Logger.getLogger(VersionParameterDefinition.class.getName());
 
     private final String groupid;
     private final String repoid;
@@ -72,7 +72,7 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
     	List<Repository> out = new ArrayList<Repository>();
     	
     	for(Map.Entry<String,Repository> e : RepositoryConfiguration.get().getRepositoryMap().entrySet()) {
-    		if("ALL".equals(repoid) || repoid.equals(e.getKey())) {
+    		if(repoid == null || "ALL".equals(repoid) || repoid.equals(e.getKey())) {
     			out.add(e.getValue());
     		}
     	}
@@ -87,7 +87,7 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
     	List<String> versionStrings = new ArrayList<String>();
 
     	File localRepo = RepositoryConfiguration.get().getLocalRepoPath();
-        log.info("VersionParameterDefinition: local repo "+localRepo.getAbsolutePath());
+        LOG.info("VersionParameterDefinition: local repo "+localRepo.getAbsolutePath());
         
         Aether aether = new Aether(
         		repos, localRepo, null, false, 
@@ -105,7 +105,7 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
             	}
             }
         } catch (VersionRangeResolutionException ex) {
-            log.log(Level.SEVERE, "Could not determine versions", ex);
+            LOG.log(Level.SEVERE, "Could not determine versions", ex);
         }
         if(versionStrings.size()==0) {
         	throw new RuntimeException("no versions found");
@@ -190,7 +190,7 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
             RepositoryConfiguration repoConfig = RepositoryConfiguration.get();
             if (repoConfig != null) {
                 repo = repoConfig.getRepositoryMap().get(id);
-                log.fine("getRepo(" + id + ")=" + repo);
+                LOG.fine("getRepo(" + id + ")=" + repo);
             }
             return repo;
         }
@@ -200,7 +200,7 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
             RepositoryConfiguration repoConfig = RepositoryConfiguration.get();
             if (repoConfig != null) {
                 repos = repoConfig.getRepos();
-                log.fine("getRepos()=" + repos);
+                LOG.fine("getRepos()=" + repos);
             }
             return repos;
         }
@@ -262,7 +262,7 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
             try {
             	return FormValidation.ok(Messages.Success());
             } catch (Exception e) {
-                log.log(Level.SEVERE, "Client error: " + e.getMessage(), e);
+                LOG.log(Level.SEVERE, "Client error: " + e.getMessage(), e);
                 return FormValidation.error(Messages.ClientError() + e.getMessage());
             }
         }
