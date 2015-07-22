@@ -184,6 +184,10 @@ public class Aether {
             session.setTransferListener(new ConsoleTransferListener(logger));
             session.setRepositoryListener(new ConsoleRepositoryListener(logger));
         }
+        
+        // Disable caching
+        session.setConfigProperty("aether.versionResolver.noCache", Boolean.TRUE);
+        
         addProxySelectorIfNecessary(session);
         return session;
     }
