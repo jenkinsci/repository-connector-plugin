@@ -32,7 +32,7 @@ public class ArtifactDownloadTest {
         FreeStyleProject p = j.createFreeStyleProject();
 
         Artifact a = new Artifact("commons-logging", "commons-logging", null, "1.0.4", "jar", "myJar.jar");
-        ArtifactResolver resolver = new ArtifactResolver("target", Collections.singletonList(a), true, false, "always", null, "always", null);
+        ArtifactResolver resolver = new ArtifactResolver(null,"target", Collections.singletonList(a), true, false, "always", null, "always", null);
         
         p.getBuildersList().add(resolver);
         p.getBuildersList().add(new Shell("ls -ltr"));
@@ -49,7 +49,7 @@ public class ArtifactDownloadTest {
         FreeStyleProject p = j.createFreeStyleProject();
 
         Artifact a = new Artifact("commons-logging", "commons-logging", null, "1.0", "jar", "myJar.jar");
-        ArtifactResolver resolver = new ArtifactResolver(null, Collections.singletonList(a), true, false, "always", null, "always", null);
+        ArtifactResolver resolver = new ArtifactResolver(null,null, Collections.singletonList(a), true, false, "always", null, "always", null);
         
         p.getBuildersList().add(resolver);
         p.getBuildersList().add(new VerifyBuilder("myJar.jar"));
@@ -64,7 +64,7 @@ public class ArtifactDownloadTest {
         FreeStyleProject p = j.createFreeStyleProject();
 
         Artifact a = new Artifact("commons-logging", "commons-logging", null, "1.0.1", "jar", null);
-        ArtifactResolver resolver = new ArtifactResolver(null, Collections.singletonList(a), true, false, "always", null, "always", null);
+        ArtifactResolver resolver = new ArtifactResolver(null,null, Collections.singletonList(a), true, false, "always", null, "always", null);
         
         p.getBuildersList().add(resolver);
         p.getBuildersList().add(new VerifyBuilder("commons-logging-1.0.1.jar"));
@@ -79,7 +79,7 @@ public class ArtifactDownloadTest {
         FreeStyleProject p = j.createFreeStyleProject();
 
         Artifact a = new Artifact("${MY_ARTID}", "${MY_GROUP}", "${MY_CLASSIFIER}", "${MY_VERSION}", "${MY_EXT}", "${MY_FILE}");
-        ArtifactResolver resolver = new ArtifactResolver(null, Collections.singletonList(a), true, false, "always", null, "always", null);
+        ArtifactResolver resolver = new ArtifactResolver(null,null, Collections.singletonList(a), true, false, "always", null, "always", null);
         
         p.getBuildersList().add(resolver);
         p.getBuildersList().add(new VerifyBuilder("aFile.jar"));
