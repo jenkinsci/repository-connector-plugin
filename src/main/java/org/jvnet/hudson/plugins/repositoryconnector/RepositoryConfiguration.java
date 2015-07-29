@@ -87,8 +87,7 @@ public class RepositoryConfiguration extends GlobalConfiguration implements Seri
             if (!StringUtils.isBlank(repo.getUrl())) {
                 log.fine("Adding repo " + repo);
                 repos.put(repo.getId(), repo);
-            }
-            else {
+            } else {
                 // TODO: Show error -> URL must not be empty
             }
         }

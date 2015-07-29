@@ -189,7 +189,7 @@ public class Aether {
         RepositorySystemSession session = newSession();
 
         ArtifactRequest aReq = new ArtifactRequest();
-        Artifact a = new DefaultArtifact(groupId, artifactId, extension, version);
+        Artifact a = new DefaultArtifact(groupId, artifactId, classifier, extension, version);
         aReq.setArtifact(a);
         aReq.setRepositories(repositories);
         

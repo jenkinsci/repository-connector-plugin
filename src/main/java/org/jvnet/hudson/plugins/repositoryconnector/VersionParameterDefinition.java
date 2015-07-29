@@ -46,7 +46,7 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
 
     @DataBoundConstructor
     public VersionParameterDefinition(String repoid, String groupid, String artifactid, String propertyName, String description, boolean reverseOrder) {
-        super(groupid + "." + artifactid, description);
+        super(propertyName!=null&&propertyName.length()>0?propertyName:(groupid + "." + artifactid), description);
         this.repoid = repoid;
         this.groupid = groupid;
         this.artifactid = artifactid;
@@ -109,23 +109,6 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
         }
         if(versionStrings.size()==0) {
         	throw new RuntimeException("no versions found");
-        }
-        if (!versionStrings.isEmpty()) {
-            // reverseorder to have the latest versions on top of the list
-        	if(reverseOrder) {
-        		Collections.reverse(versionStrings);
-        	}
-            // add the default parameters
-        	// commented this because nexus is a bitch when it comes to dealing with 
-        	// these - "latest" is always the latest according to the metadata, which
-        	// doesn't really get updated. see 
-        	//
-        	//  http://stackoverflow.com/questions/14165784/maven-nexus-v-latest-not-working
-        	//  http://www.blackpepper.co.uk/nexus-support-for-latest-version/
-        	//  http://articles.javatalks.ru/articles/32
-        	//
-            //versionStrings.add(0, "LATEST");
-            //versionStrings.add(0, "RELEASE");
         }
         return versionStrings;
     }
