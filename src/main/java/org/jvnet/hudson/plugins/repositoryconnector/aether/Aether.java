@@ -218,8 +218,8 @@ public class Aether {
         VersionRangeRequest rangeRequest = new VersionRangeRequest();
         rangeRequest.setArtifact(artifact);
         rangeRequest.setRepositories(repositories);
-        for(Repository r : repositories) {
-        	log.log(Level.INFO, " ---- adding to eather query: "+r.getUser()+" / "+r.getUrl());
+        for(RemoteRepository r : repositories) {
+        	log.log(Level.INFO, " ---- adding to eather query: "+r.getUrl());
         }
 
         VersionRangeResult rangeResult = repositorySystem.resolveVersionRange( session, rangeRequest );
