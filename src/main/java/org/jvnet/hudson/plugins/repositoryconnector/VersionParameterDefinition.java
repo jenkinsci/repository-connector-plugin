@@ -88,6 +88,11 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
 
     	File localRepo = RepositoryConfiguration.get().getLocalRepoPath();
         LOG.info("VersionParameterDefinition: local repo "+localRepo.getAbsolutePath());
+    	LOG.log(Level.INFO, "getting versions for: "+groupid+" / "+artifactid);
+    	LOG.log(Level.INFO, " - checking "+repos.size()+" repos" );
+        for(Repository r : repos) {
+        	LOG.log(Level.INFO, " --- checking repo: "+r.getId()+" / "+r.getUrl()+" (user: "+r.getUser()+")" );
+        }
         
         Aether aether = new Aether(
         		repos, localRepo, null, false, 
@@ -97,6 +102,7 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
                 RepositoryPolicy.CHECKSUM_POLICY_FAIL);
         try {
             List<Version> versions = aether.resolveVersions(groupid, artifactid);
+        	LOG.log(Level.INFO, " - found "+versions.size()+" versions" );
             while(versions.size()>0) {
             	if(reverseOrder) {
             		versionStrings.add(0,versions.remove(0).toString());
@@ -106,6 +112,7 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
             }
         } catch (VersionRangeResolutionException ex) {
             LOG.log(Level.SEVERE, "Could not determine versions", ex);
+        	throw new RuntimeException("no versions found",ex);
         }
         if(versionStrings.size()==0) {
         	throw new RuntimeException("no versions found");

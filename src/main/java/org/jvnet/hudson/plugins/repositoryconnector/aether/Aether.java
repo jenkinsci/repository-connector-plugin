@@ -28,6 +28,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.maven.repository.internal.DefaultServiceLocator;
 import org.apache.maven.repository.internal.MavenRepositorySystemSession;
 import org.jvnet.hudson.plugins.repositoryconnector.Repository;
+import org.omg.stub.java.rmi._Remote_Stub;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.artifact.Artifact;
@@ -111,6 +112,7 @@ public class Aether {
                 Authentication authentication = new Authentication(user, repo.getPassword());
                 repoObj.setAuthentication(authentication);
             }
+            log.log(Level.INFO, " ---- adding repo: { user : '"+user+"', url = '"+repo.getUrl()+"', isRepoManager : "+repo.isRepositoryManager()+" } ");
             repoObj.setRepositoryManager(repo.isRepositoryManager());
             repoObj.setPolicy(true, snapshotPolicy);
             repoObj.setPolicy(false, releasePolicy);
@@ -118,7 +120,11 @@ public class Aether {
             if (repoObj.isRepositoryManager()) {
                 // well, in case of repository manager, let's have a look one step deeper
                 // @see org.sonatype.aether.impl.internal.DefaultMetadataResolver#getEnabledSourceRepositories(org.sonatype.aether.repository.RemoteRepository, org.sonatype.aether.metadata.Metadata.Nature)
-                repoObj.setMirroredRepositories(resolveMirrors(repoObj));
+            	List<RemoteRepository> repos = resolveMirrors(repoObj);
+            	for(RemoteRepository rr : repos) {
+            		log.log(Level.INFO, "adding mirror: "+rr.getUrl());
+            	}
+                repoObj.setMirroredRepositories(repos);
             }
             repositories.add(repoObj);
         }
@@ -202,8 +208,7 @@ public class Aether {
         return out;
     }
 
-    public List<Version> resolveVersions(String groupId, String artifactId)
-            throws VersionRangeResolutionException {
+    public List<Version> resolveVersions(String groupId, String artifactId) throws VersionRangeResolutionException {
 
     	RepositorySystemSession session = newSession();
         ((MavenRepositorySystemSession)session).setUpdatePolicy(RepositoryPolicy.UPDATE_POLICY_ALWAYS);
@@ -213,6 +218,9 @@ public class Aether {
         VersionRangeRequest rangeRequest = new VersionRangeRequest();
         rangeRequest.setArtifact(artifact);
         rangeRequest.setRepositories(repositories);
+        for(Repository r : repositories) {
+        	log.log(Level.INFO, " ---- adding to eather query: "+r.getUser()+" / "+r.getUrl());
+        }
 
         VersionRangeResult rangeResult = repositorySystem.resolveVersionRange( session, rangeRequest );
 
