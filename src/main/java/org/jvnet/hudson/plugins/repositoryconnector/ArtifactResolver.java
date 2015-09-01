@@ -122,6 +122,7 @@ public class ArtifactResolver extends Builder implements Serializable {
                 final String groupId = TokenMacro.expandAll(build, listener, a.getGroupId());
                 final String extension = TokenMacro.expandAll(build, listener, a.getExtension());
                 final String targetFileName = TokenMacro.expandAll(build, listener, a.getTargetFileName());
+                final String expandedTargetDirectory = TokenMacro.expandAll(build, listener, getTargetDirectory());
 
                 String version = TokenMacro.expandAll(build, listener, a.getVersion());
                 version = checkVersionOverride(build, listener, groupId, artifactId, version);
@@ -133,7 +134,7 @@ public class ArtifactResolver extends Builder implements Serializable {
 
                     String fileName = StringUtils.isBlank(targetFileName) ? file.getName() : targetFileName;
                     FilePath source = new FilePath(file);
-                    String targetDir = StringUtils.isNotBlank(getTargetDirectory()) ? getTargetDirectory() + "/" : "";  
+                    String targetDir = StringUtils.isNotBlank(expandedTargetDirectory) ? expandedTargetDirectory + "/" : "";  
                     FilePath target = new FilePath(build.getWorkspace(), targetDir + fileName);
                     boolean wasDeleted = target.delete();
                     if (wasDeleted) {
