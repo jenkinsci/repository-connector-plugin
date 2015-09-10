@@ -74,9 +74,9 @@ public class Aether {
     public String releaseChecksumPolicy;
 
     public Aether(Collection<Repository> remoteRepositories, File localRepository) {
-            this(remoteRepositories, localRepository, null, false, RepositoryPolicy.UPDATE_POLICY_NEVER, 
-                    RepositoryPolicy.CHECKSUM_POLICY_IGNORE, RepositoryPolicy.UPDATE_POLICY_NEVER, RepositoryPolicy.CHECKSUM_POLICY_IGNORE);
-        }
+            this(remoteRepositories, localRepository, null, false, RepositoryPolicy.UPDATE_POLICY_ALWAYS,
+                    RepositoryPolicy.CHECKSUM_POLICY_IGNORE, RepositoryPolicy.UPDATE_POLICY_ALWAYS, RepositoryPolicy.CHECKSUM_POLICY_IGNORE);
+    }
 
     public Aether(Collection<Repository> remoteRepositories, File localRepository, PrintStream logger, boolean extendedLogging,
             String snapshotUpdatePolicy, String snapshotChecksumPolicy, String releaseUpdatePolicy, String releaseChecksumPolicy) {
@@ -184,6 +184,10 @@ public class Aether {
             session.setTransferListener(new ConsoleTransferListener(logger));
             session.setRepositoryListener(new ConsoleRepositoryListener(logger));
         }
+        
+        // Disable caching
+        session.setConfigProperty("aether.versionResolver.noCache", Boolean.TRUE);
+        
         addProxySelectorIfNecessary(session);
         return session;
     }
