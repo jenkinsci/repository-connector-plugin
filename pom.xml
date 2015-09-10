@@ -8,7 +8,7 @@
 
 	<artifactId>repository-connector</artifactId>
 	<name>Repository Connector</name>
-	<version>1.1.2-SNAPSHOT</version>
+	<version>1.1.2</version>
 	<packaging>hpi</packaging>
 
 	<properties>
@@ -51,7 +51,8 @@
 		<connection>scm:git:ssh://github.com/jenkinsci/repository-connector-plugin.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/repository-connector-plugin.git</developerConnection>
 		<url>https://github.com/jenkinsci/repository-connector-plugin</url>
-	</scm>
+	  <tag>repository-connector-1.1.2</tag>
+  </scm>
 	<distributionManagement>
 		<repository>
 			<id>maven.jenkins-ci.org</id>
