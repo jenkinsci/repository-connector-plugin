@@ -129,7 +129,7 @@ public class Repository implements Serializable, Comparable {
         return isRepositoryManager;
     }
 
-        public int compareTo(Object o) {
-            return id.compareTo(((Repository)o).getId());
-        }
+    public int compareTo(Object o) {
+        return id.compareTo(((Repository)o).getId());
+    }
 }
