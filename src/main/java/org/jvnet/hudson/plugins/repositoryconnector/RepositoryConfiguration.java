@@ -112,7 +112,6 @@ public class RepositoryConfiguration extends GlobalConfiguration implements Seri
         return result;
     }
 
-
     public Collection<Repository> getRepos() {
         List<Repository> r = new ArrayList<Repository>();
         r.addAll(repos.values());
@@ -120,6 +119,7 @@ public class RepositoryConfiguration extends GlobalConfiguration implements Seri
         log.fine("repos=" + r);
         return r;
     }
+
     public Map<String, Repository> getRepositoryMap() {
         log.fine("reposmap=" + repos);
         return repos;

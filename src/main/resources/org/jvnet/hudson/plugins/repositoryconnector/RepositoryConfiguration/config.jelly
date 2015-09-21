@@ -1,52 +1,52 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
-	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-	<f:section title="${%ArtifactResolver}">
+    xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <f:section title="${%ArtifactResolver}">
 
-		<f:entry title="${%LocalRepository}"
-			description="${%LocalRepositoryDescription}"
-			help="/plugin/repository-connector/help-globalConfig.html" field="localRepository">
-			<f:textbox name="artifactresolver.localRepository" value="${descriptor.localRepository}" />
-		</f:entry>
+        <f:entry title="${%LocalRepository}"
+            description="${%LocalRepositoryDescription}"
+            help="/plugin/repository-connector/help-globalConfig.html" field="localRepository">
+            <f:textbox name="artifactresolver.localRepository" value="${descriptor.localRepository}" />
+        </f:entry>
 
-		<f:entry title="${%Repositories}"
-			description="${%RepositoriesDescription}">
-			<f:repeatable var="repo" items="${descriptor.repos}"
-				name="artifactresolver.repos" noAddButton="true" minimum="1">
-				<table width="100%">
+        <f:entry title="${%Repositories}"
+            description="${%RepositoriesDescription}">
+            <f:repeatable var="repo" items="${descriptor.repos}"
+                name="artifactresolver.repos" noAddButton="true" minimum="1">
+                <table width="100%">
 
-					<f:entry title="${%RepoId}">
-						<f:textbox name="id" value="${repo.id}" />
-					</f:entry>
+                    <f:entry title="${%RepoId}">
+                        <f:textbox name="id" value="${repo.id}" />
+                    </f:entry>
 
-					<f:entry title="${%RepoType}">
-						<f:textbox name="type" value="${repo.type}" />
-					</f:entry>
-					
-					<f:entry title="${%RepoManager}" description="${%RepoManagerDescription}">
+                    <f:entry title="${%RepoType}">
+                        <f:textbox name="type" value="${repo.type}" />
+                    </f:entry>
+                    
+                    <f:entry title="${%RepoManager}" description="${%RepoManagerDescription}">
                         <f:checkbox name="repositoryManager" checked="${repo.isRepositoryManager()}"/>
                     </f:entry>
 
-					<f:entry title="${%Url}">
-						<f:textbox name="url" value="${repo.url}" />
-					</f:entry>
+                    <f:entry title="${%Url}">
+                        <f:textbox name="url" value="${repo.url}" />
+                    </f:entry>
 
-					<f:entry title="${%User}">
-						<f:textbox name="user" value="${repo.user}" />
-					</f:entry>
+                    <f:entry title="${%User}">
+                        <f:textbox name="user" value="${repo.user}" />
+                    </f:entry>
 
-					<f:entry title="${%Password}">
-						<f:password name="password" value="${repo.password}" />
-					</f:entry>
+                    <f:entry title="${%Password}">
+                        <f:password name="password" value="${repo.password}" />
+                    </f:entry>
 
-					<f:entry>
-						<div align="right">
-							<input type="button" value="${%AddNewRepo}" class="repeatable-add show-if-last" />
-							<input type="button" value="${%Delete}"
-								class="repeatable-delete show-if-not-only" style="margin-left: 1em;" />
-						</div>
-					</f:entry>
-				</table>
-			</f:repeatable>
-		</f:entry>
-	</f:section>
+                    <f:entry>
+                        <div align="right">
+                            <input type="button" value="${%AddNewRepo}" class="repeatable-add show-if-last" />
+                            <input type="button" value="${%Delete}"
+                                class="repeatable-delete show-if-not-only" style="margin-left: 1em;" />
+                        </div>
+                    </f:entry>
+                </table>
+            </f:repeatable>
+        </f:entry>
+    </f:section>
 </j:jelly>

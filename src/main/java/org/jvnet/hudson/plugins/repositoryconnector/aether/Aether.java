@@ -61,7 +61,7 @@ import org.sonatype.aether.util.repository.DefaultProxySelector;
 import org.sonatype.aether.version.Version;
 
 public class Aether {
-        private static final Logger log = Logger.getLogger(Aether.class.getName());
+    private static final Logger log = Logger.getLogger(Aether.class.getName());
 
     private final List<RemoteRepository> repositories = new ArrayList<RemoteRepository>();
     private final RepositorySystem repositorySystem;
@@ -74,8 +74,8 @@ public class Aether {
     public String releaseChecksumPolicy;
 
     public Aether(Collection<Repository> remoteRepositories, File localRepository) {
-            this(remoteRepositories, localRepository, null, false, RepositoryPolicy.UPDATE_POLICY_ALWAYS,
-                    RepositoryPolicy.CHECKSUM_POLICY_IGNORE, RepositoryPolicy.UPDATE_POLICY_ALWAYS, RepositoryPolicy.CHECKSUM_POLICY_IGNORE);
+        this(remoteRepositories, localRepository, null, false, RepositoryPolicy.UPDATE_POLICY_ALWAYS,
+                RepositoryPolicy.CHECKSUM_POLICY_IGNORE, RepositoryPolicy.UPDATE_POLICY_ALWAYS, RepositoryPolicy.CHECKSUM_POLICY_IGNORE);
     }
 
     public Aether(Collection<Repository> remoteRepositories, File localRepository, PrintStream logger, boolean extendedLogging,
@@ -128,34 +128,34 @@ public class Aether {
         }
     }
     
-	private void addProxySelectorIfNecessary(DefaultRepositorySystemSession repositorySession) {
-		Jenkins jenkins = Jenkins.getInstance();
-		if (jenkins.proxy != null && StringUtils.isNotBlank(jenkins.proxy.name)) {
-			DefaultProxySelector proxySelector = new DefaultProxySelector();
-			Authentication authenticator = new Authentication(jenkins.proxy.getUserName(), jenkins.proxy.getPassword());
+    private void addProxySelectorIfNecessary(DefaultRepositorySystemSession repositorySession) {
+        Jenkins jenkins = Jenkins.getInstance();
+        if (jenkins.proxy != null && StringUtils.isNotBlank(jenkins.proxy.name)) {
+            DefaultProxySelector proxySelector = new DefaultProxySelector();
+            Authentication authenticator = new Authentication(jenkins.proxy.getUserName(), jenkins.proxy.getPassword());
 
-			Proxy httpProxy = new Proxy("http", jenkins.proxy.name, jenkins.proxy.port, authenticator);
-			Proxy httpsProxy = new Proxy("https", jenkins.proxy.name, jenkins.proxy.port, authenticator);
+            Proxy httpProxy = new Proxy("http", jenkins.proxy.name, jenkins.proxy.port, authenticator);
+            Proxy httpsProxy = new Proxy("https", jenkins.proxy.name, jenkins.proxy.port, authenticator);
 
-			String nonProxySettings = convertHudsonNonProxyToJavaNonProxy(jenkins.proxy.noProxyHost);
+            String nonProxySettings = convertHudsonNonProxyToJavaNonProxy(jenkins.proxy.noProxyHost);
 
-			proxySelector.add(httpProxy, nonProxySettings);
-			proxySelector.add(httpsProxy, nonProxySettings);
+            proxySelector.add(httpProxy, nonProxySettings);
+            proxySelector.add(httpsProxy, nonProxySettings);
 
-			log.log(Level.FINE, "Setting proxy for Aether: host={0}, port={1}, user={2}, password=******, nonProxyHosts={3}",
-					new Object[] { jenkins.proxy.name, jenkins.proxy.port, jenkins.proxy.getUserName(), nonProxySettings });
-			repositorySession.setProxySelector(proxySelector);
-		}
-	}
+            log.log(Level.FINE, "Setting proxy for Aether: host={0}, port={1}, user={2}, password=******, nonProxyHosts={3}",
+                    new Object[] { jenkins.proxy.name, jenkins.proxy.port, jenkins.proxy.getUserName(), nonProxySettings });
+            repositorySession.setProxySelector(proxySelector);
+        }
+    }
 
-	public String convertHudsonNonProxyToJavaNonProxy(String hudsonNonProxy) {
+    public String convertHudsonNonProxyToJavaNonProxy(String hudsonNonProxy) {
         if (StringUtils.isEmpty(hudsonNonProxy)) {
             return "";
         }
-		String[] nonProxyArray = hudsonNonProxy.split("[ \t\n,|]+");
-		String nonProxyOneLine = StringUtils.join(nonProxyArray, '|');
-		return nonProxyOneLine;
-	}
+        String[] nonProxyArray = hudsonNonProxy.split("[ \t\n,|]+");
+        String nonProxyOneLine = StringUtils.join(nonProxyArray, '|');
+        return nonProxyOneLine;
+    }
 
     /**
      * Resolve mirrors configured in this repository... Or fake it...
@@ -168,7 +168,6 @@ public class Aether {
         // just push the repository in the list of mirrored to enable artifact resolution
         return Arrays.asList(new RemoteRepository(repository));
     }
-
 
     private RepositorySystem newManualSystem() {
         DefaultServiceLocator locator = new DefaultServiceLocator();
@@ -217,13 +216,13 @@ public class Aether {
         RepositorySystemSession session = newSession();
         Artifact artifact = new DefaultArtifact(groupId, artifactId, null, null, "[0,)");
 
-                VersionRangeRequest rangeRequest = new VersionRangeRequest();
-                rangeRequest.setArtifact( artifact );
-                rangeRequest.setRepositories( repositories );
+        VersionRangeRequest rangeRequest = new VersionRangeRequest();
+        rangeRequest.setArtifact( artifact );
+        rangeRequest.setRepositories( repositories );
 
-                VersionRangeResult rangeResult = repositorySystem.resolveVersionRange( session, rangeRequest );
+        VersionRangeResult rangeResult = repositorySystem.resolveVersionRange( session, rangeRequest );
 
-                return rangeResult.getVersions();
+        return rangeResult.getVersions();
     }
 
     public void install(Artifact artifact, Artifact pom) throws InstallationException {
@@ -242,9 +241,9 @@ public class Aether {
         repoObj.setRepositoryManager(repository.isRepositoryManager());
         final String user = repository.getUser();
         if (!StringUtils.isBlank(user)) {
-                        if (logger != null) {
-                            logger.println("INFO: set authentication for " + user);
-                        }
+            if (logger != null) {
+                logger.println("INFO: set authentication for " + user);
+            }
             Authentication authentication = new Authentication(user, repository.getPassword());
             repoObj.setAuthentication(authentication);
         }
