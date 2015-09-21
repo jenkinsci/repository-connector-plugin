@@ -23,15 +23,17 @@ public class Repository implements Serializable, Comparable {
     final private String user;
     final private String password;
     final private boolean isRepositoryManager;
+    final private boolean allowDeploy;
 
     @DataBoundConstructor
-    public Repository(String id, String type, String url, String user, String password, boolean repositoryManager) {
+    public Repository(String id, String type, String url, String user, String password, boolean repositoryManager, boolean allowDeploy) {
         this.id = id == null ? "central" : id;
         this.type = type == null ? "default" : type;
         this.url = url;
         this.user = user;
         this.password = password;
         this.isRepositoryManager = repositoryManager;
+        this.allowDeploy = allowDeploy;
     }
 
     /**
@@ -127,6 +129,13 @@ public class Repository implements Serializable, Comparable {
      */
     public boolean isRepositoryManager() {
         return isRepositoryManager;
+    }
+
+    /**
+     * @return the allowDeploy
+     */
+    public boolean allowDeploy() {
+        return allowDeploy;
     }
 
     public int compareTo(Object o) {

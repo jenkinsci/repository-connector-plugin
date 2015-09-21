@@ -21,7 +21,7 @@
                     <f:entry title="${%RepoType}">
                         <f:textbox name="type" value="${repo.type}" />
                     </f:entry>
-                    
+
                     <f:entry title="${%RepoManager}" description="${%RepoManagerDescription}">
                         <f:checkbox name="repositoryManager" checked="${repo.isRepositoryManager()}"/>
                     </f:entry>
@@ -36,6 +36,10 @@
 
                     <f:entry title="${%Password}">
                         <f:password name="password" value="${repo.password}" />
+                    </f:entry>
+
+                    <f:entry title="${%AllowDeploy}" description="${%AllowDeployDescription}">
+                        <f:checkbox name="allowDeploy" checked="${repo.allowDeploy()}"/>
                     </f:entry>
 
                     <f:entry>
