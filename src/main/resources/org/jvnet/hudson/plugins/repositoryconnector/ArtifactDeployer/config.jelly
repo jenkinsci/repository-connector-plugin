@@ -8,9 +8,9 @@
     <f:entry title="${%Repository}">
         <select class="setting-input" name="repoId"
             description="${%RepositoryDescription}">
-            <j:forEach var="repo" items="${instance.repos}">
-                <f:option selected="${instance.repoId==repo.id}" value="${repo.id}">${repo.id}
-                    - ${repo.url}</f:option>
+            <j:forEach var="repo" items="${descriptor.deployableRepos}">
+                <f:option selected="${instance.repoId==repo.id}"
+                    value="${repo.id}">${repo.id} [ ${repo.url} ]</f:option>
             </j:forEach>
         </select>
     </f:entry>
@@ -18,9 +18,9 @@
     <f:entry title="${%SnapshotRepository}">
         <select class="setting-input" name="snapshotRepoId"
             description="${%SnapshotRepositoryDescription}">
-            <j:forEach var="repo" items="${instance.repos}">
+            <j:forEach var="repo" items="${descriptor.deployableRepos}">
                 <f:option selected="${instance.snapshotRepoId==repo.id}"
-                    value="${repo.id}">${repo.id} - ${repo.url}</f:option>
+                    value="${repo.id}">${repo.id} [ ${repo.url} ]</f:option>
             </j:forEach>
         </select>
     </f:entry>

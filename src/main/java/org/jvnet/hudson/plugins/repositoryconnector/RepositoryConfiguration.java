@@ -32,7 +32,7 @@ public class RepositoryConfiguration extends GlobalConfiguration implements Seri
 
     private static final Map<String, Repository> DEFAULT_REPOS = new HashMap<String, Repository>();
     static {
-        DEFAULT_REPOS.put("central", new Repository("central", "default", "http://repo1.maven.org/maven2", null, null, false));
+        DEFAULT_REPOS.put("central", new Repository("central", "default", "http://repo1.maven.org/maven2", null, null, false, true));
     }
 
     private final Map<String, Repository> repos = new HashMap<String, Repository>();
@@ -115,6 +115,18 @@ public class RepositoryConfiguration extends GlobalConfiguration implements Seri
     public Collection<Repository> getRepos() {
         List<Repository> r = new ArrayList<Repository>();
         r.addAll(repos.values());
+        Collections.sort(r);
+        log.fine("repos=" + r);
+        return r;
+    }
+
+    public Collection<Repository> getDeployableRepos() {
+        List<Repository> r = new ArrayList<Repository>();
+        for (Repository repo : repos.values()) {
+            if (repo.allowDeploy()) {
+                r.add(repo);
+            }
+        }
         Collections.sort(r);
         log.fine("repos=" + r);
         return r;

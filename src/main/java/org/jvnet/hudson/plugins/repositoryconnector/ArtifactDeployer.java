@@ -137,12 +137,12 @@ public class ArtifactDeployer extends Notifier implements Serializable {
 
                 final String tmpRepoId = version.contains("SNAPSHOT") ? snapshotRepoId : repoId;
                 Repository repo = getRepoById(tmpRepoId);
-                logger.println("INFO: deploy to repository " + repo);
+                logger.println("INFO: deploy to repository " + repo + " with global user " + repo.getUser());
                 if (isOverwriteSecurity()) {
-                    logger.println("INFO: define repo access security...");
                     String tmpuser = TokenMacro.expandAll(build, listener, overwriteSecurity.user);
                     String tmppwd = TokenMacro.expandAll(build, listener, overwriteSecurity.password);
-                    repo = new Repository(repo.getId(), repo.getType(), repo.getUrl(), tmpuser, tmppwd, repo.isRepositoryManager());
+                    logger.println("INFO: define repo access security ... overriding with user " + tmpuser);
+                    repo = new Repository(repo.getId(), repo.getType(), repo.getUrl(), tmpuser, tmppwd, repo.isRepositoryManager(), repo.allowDeploy());
                 }
 
                 aether.install(artifact, pom);
@@ -153,7 +153,7 @@ public class ArtifactDeployer extends Notifier implements Serializable {
                 tmpPom.delete();
             }
         } catch (DeploymentException e) {
-            logger.println("ERROR: possible causes: 1. in case of a SNAPSHOT deployment: does your remote repository allow SNAPSHOT deployments?, 2. in case of a release dpeloyment: is this version of the artifact already deployed then does your repository allow updating artifacts?");
+            logger.println("ERROR: possible causes: 1. in case of a SNAPSHOT deployment: does your remote repository allow SNAPSHOT deployments?, 2. in case of a release deployment: is this version of the artifact already deployed then does your repository allow updating artifacts?");
             return logError("DeploymentException: ", logger, e);
         } catch (IOException e) {
             return logError("IOException: ", logger, e);
@@ -183,8 +183,7 @@ public class ArtifactDeployer extends Notifier implements Serializable {
         }
 
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
-            // TODO: This disables the extension => change to true
-            return false;
+            return (this.getDeployableRepos().size() > 0);
         }
 
         public String getDisplayName() {
@@ -194,6 +193,16 @@ public class ArtifactDeployer extends Notifier implements Serializable {
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
             return true;
+        }
+
+        public Collection<Repository> getDeployableRepos() {
+            Collection<Repository> repos = null;
+            RepositoryConfiguration repoConfig = RepositoryConfiguration.get();
+            if (repoConfig != null) {
+                repos = repoConfig.getDeployableRepos();
+                log.fine("getRepos()=" + repos);
+            }
+            return repos;
         }
     }
 
