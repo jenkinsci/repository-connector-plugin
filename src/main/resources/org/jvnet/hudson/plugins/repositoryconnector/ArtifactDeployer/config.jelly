@@ -66,6 +66,10 @@
 					<f:textbox name="targetFileName" value="${artifact.targetFileName}" />
 				</f:entry>
 
+				<f:entry title="${%UploadPOM}" description="${%UploadPOMDescription}">
+					<f:checkbox name="uploadPOM" checked="${artifact.uploadPOM}" default="true" />
+				</f:entry>
+
 				<f:entry>
 					<div align="right">
 						<input type="button" value="${%AddArtifact}" class="repeatable-add show-if-last" />

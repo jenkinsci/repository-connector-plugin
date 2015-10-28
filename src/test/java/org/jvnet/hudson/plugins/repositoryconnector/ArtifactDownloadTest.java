@@ -31,7 +31,7 @@ public class ArtifactDownloadTest {
 
         FreeStyleProject p = j.createFreeStyleProject();
 
-        Artifact a = new Artifact("commons-logging", "commons-logging", null, "1.0.4", "jar", "myJar.jar");
+        Artifact a = new Artifact("commons-logging", "commons-logging", null, "1.0.4", "jar", "myJar.jar", true);
         ArtifactResolver resolver = new ArtifactResolver("target", Collections.singletonList(a), true, false, "always", null, "always", null);
         
         p.getBuildersList().add(resolver);
@@ -48,7 +48,7 @@ public class ArtifactDownloadTest {
 
         FreeStyleProject p = j.createFreeStyleProject();
 
-        Artifact a = new Artifact("commons-logging", "commons-logging", null, "1.0", "jar", "myJar.jar");
+        Artifact a = new Artifact("commons-logging", "commons-logging", null, "1.0", "jar", "myJar.jar", true);
         ArtifactResolver resolver = new ArtifactResolver(null, Collections.singletonList(a), true, false, "always", null, "always", null);
         
         p.getBuildersList().add(resolver);
@@ -63,7 +63,7 @@ public class ArtifactDownloadTest {
 
         FreeStyleProject p = j.createFreeStyleProject();
 
-        Artifact a = new Artifact("commons-logging", "commons-logging", null, "1.0.1", "jar", null);
+        Artifact a = new Artifact("commons-logging", "commons-logging", null, "1.0.1", "jar", null, true);
         ArtifactResolver resolver = new ArtifactResolver(null, Collections.singletonList(a), true, false, "always", null, "always", null);
         
         p.getBuildersList().add(resolver);
@@ -78,7 +78,7 @@ public class ArtifactDownloadTest {
 
         FreeStyleProject p = j.createFreeStyleProject();
 
-        Artifact a = new Artifact("${MY_ARTID}", "${MY_GROUP}", "${MY_CLASSIFIER}", "${MY_VERSION}", "${MY_EXT}", "${MY_FILE}");
+        Artifact a = new Artifact("${MY_ARTID}", "${MY_GROUP}", "${MY_CLASSIFIER}", "${MY_VERSION}", "${MY_EXT}", "${MY_FILE}", true);
         ArtifactResolver resolver = new ArtifactResolver(null, Collections.singletonList(a), true, false, "always", null, "always", null);
         
         p.getBuildersList().add(resolver);

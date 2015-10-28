@@ -20,15 +20,17 @@ public class Artifact implements Serializable {
     private final String version;
     private final String extension;
     private final String targetFileName;
+    private final Boolean uploadPOM;
 
    @DataBoundConstructor
-    public Artifact(String groupId, String artifactId, String classifier, String version, String extension, String targetFileName) {
+    public Artifact(String groupId, String artifactId, String classifier, String version, String extension, String targetFileName, Boolean uploadPOM) {
         this.groupId = groupId;
         this.artifactId = artifactId;
         this.classifier = classifier == null ? "" : classifier;
         this.extension = extension == null ? "jar" : extension;
         this.version = version;
         this.targetFileName = targetFileName;
+        this.uploadPOM = uploadPOM;
     }
 
     /**
@@ -71,6 +73,17 @@ public class Artifact implements Serializable {
      */
     public String getTargetFileName() {
         return targetFileName;
+    }
+
+    /**
+     * @return the uploadPOM
+     */
+    public boolean getUploadPOM() {
+        // Backwards compatibility: if null, config not updated: fallback to true
+        if (uploadPOM == null) {
+            return true;
+        }
+        return uploadPOM;
     }
 
     @Override

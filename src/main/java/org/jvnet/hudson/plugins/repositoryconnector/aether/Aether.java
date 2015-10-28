@@ -230,7 +230,10 @@ public class Aether {
         RepositorySystemSession session = newSession();
 
         InstallRequest installRequest = new InstallRequest();
-        installRequest.addArtifact(artifact).addArtifact(pom);
+        installRequest.addArtifact(artifact);
+        if (pom != null) {
+            installRequest.addArtifact(pom);
+        }
 
         repositorySystem.install(session, installRequest);
     }
@@ -251,7 +254,9 @@ public class Aether {
 
         DeployRequest deployRequest = new DeployRequest();
         deployRequest.addArtifact(artifact);
-        deployRequest.addArtifact(pom);
+        if (pom != null) {
+            deployRequest.addArtifact(pom);
+        }
         deployRequest.setRepository(repoObj);
 
         repositorySystem.deploy(session, deployRequest);
