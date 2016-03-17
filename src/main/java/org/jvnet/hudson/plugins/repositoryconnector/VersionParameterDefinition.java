@@ -1,27 +1,15 @@
 package org.jvnet.hudson.plugins.repositoryconnector;
 
-import hudson.Extension;
-import hudson.model.ParameterValue;
-import hudson.model.SimpleParameterDefinition;
-import hudson.model.StringParameterValue;
-import hudson.util.FormValidation;
-import hudson.util.ListBoxModel;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONException;
-import net.sf.json.JSONObject;
 
 import org.jvnet.hudson.plugins.repositoryconnector.aether.Aether;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -32,6 +20,16 @@ import org.sonatype.aether.repository.RepositoryPolicy;
 import org.sonatype.aether.resolution.VersionRangeResolutionException;
 import org.sonatype.aether.version.Version;
 
+import hudson.Extension;
+import hudson.model.ParameterValue;
+import hudson.model.SimpleParameterDefinition;
+import hudson.model.StringParameterValue;
+import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONException;
+import net.sf.json.JSONObject;
+
 public class VersionParameterDefinition extends SimpleParameterDefinition {
 
 	private static final long serialVersionUID = -147143040052020071L;
@@ -41,16 +39,18 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
     private final String groupid;
     private final String repoid;
     private final String artifactid;
+    private final String extension;
     private final boolean reverseOrder;
     private final String propertyName;
 
     @DataBoundConstructor
-    public VersionParameterDefinition(String repoid, String groupid, String artifactid, String propertyName, String description, boolean reverseOrder) {
+    public VersionParameterDefinition(String repoid, String groupid, String artifactid, String extension, String propertyName, String description, boolean reverseOrder) {
         super(propertyName!=null&&propertyName.length()>0?propertyName:(groupid + "." + artifactid), description);
         this.repoid = repoid;
         this.groupid = groupid;
         this.artifactid = artifactid;
         this.reverseOrder = reverseOrder;
+        this.extension = extension;
         this.propertyName = propertyName;
     }
 
@@ -58,7 +58,7 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
     public VersionParameterDefinition copyWithDefaultValue(ParameterValue defaultValue) {
         if (defaultValue instanceof StringParameterValue) {
             // TODO: StringParameterValue value = (StringParameterValue) defaultValue;
-            return new VersionParameterDefinition(getRepoid(), getGroupid(), getArtifactid(), "", getDescription(),true);
+            return new VersionParameterDefinition(getRepoid(), getGroupid(), getArtifactid(), getExtension(),  "", getDescription(),true);
         } else {
             return this;
         }
@@ -70,6 +70,13 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
     
     public Collection<Repository> getRepos(String repoid) {
     	List<Repository> out = new ArrayList<Repository>();
+    	
+    	if(RepositoryConfiguration.get()==null || RepositoryConfiguration.get().getRepositoryMap()==null) {
+    		throw new RuntimeException("no repository configs available! please configure your repositories first!");
+    	}
+    	if(RepositoryConfiguration.get().getRepositoryMap().size()==0) {
+    		throw new RuntimeException("repository configs are empty! please configure at least one repository first!");
+    	}
     	
     	for(Map.Entry<String,Repository> e : RepositoryConfiguration.get().getRepositoryMap().entrySet()) {
     		if(repoid == null || "ALL".equals(repoid) || repoid.equals(e.getKey())) {
@@ -88,11 +95,6 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
 
     	File localRepo = RepositoryConfiguration.get().getLocalRepoPath();
         LOG.info("VersionParameterDefinition: local repo "+localRepo.getAbsolutePath());
-    	LOG.log(Level.INFO, "getting versions for: "+groupid+" / "+artifactid);
-    	LOG.log(Level.INFO, " - checking "+repos.size()+" repos" );
-        for(Repository r : repos) {
-        	LOG.log(Level.INFO, " --- checking repo: "+r.getId()+" / "+r.getUrl()+" (user: "+r.getUser()+")" );
-        }
         
         Aether aether = new Aether(
         		repos, localRepo, null, false, 
@@ -101,7 +103,7 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
                 RepositoryPolicy.UPDATE_POLICY_ALWAYS, 
                 RepositoryPolicy.CHECKSUM_POLICY_FAIL);
         try {
-            List<Version> versions = aether.resolveVersions(groupid, artifactid);
+            List<Version> versions = aether.resolveVersions(groupid, artifactid, extension);
         	LOG.log(Level.INFO, " - found "+versions.size()+" versions" );
             while(versions.size()>0) {
             	if(reverseOrder) {
@@ -280,4 +282,8 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
         sb.append(']');
         return sb.toString();
     }
+
+	public String getExtension() {
+		return extension;
+	}
 }

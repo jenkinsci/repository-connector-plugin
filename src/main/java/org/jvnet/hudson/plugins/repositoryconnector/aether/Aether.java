@@ -18,6 +18,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,6 +42,7 @@ import org.sonatype.aether.installation.InstallRequest;
 import org.sonatype.aether.installation.InstallationException;
 import org.sonatype.aether.repository.Authentication;
 import org.sonatype.aether.repository.LocalRepository;
+import org.sonatype.aether.repository.LocalRepositoryManager;
 import org.sonatype.aether.repository.Proxy;
 import org.sonatype.aether.repository.RemoteRepository;
 import org.sonatype.aether.repository.RepositoryPolicy;
@@ -79,7 +81,11 @@ public class Aether {
             String snapshotUpdatePolicy, String snapshotChecksumPolicy, String releaseUpdatePolicy, String releaseChecksumPolicy) {
         this.logger = logger==null?System.out:logger;
         this.repositorySystem = newManualSystem();
-        this.localRepository = new LocalRepository(localRepository);
+        if(localRepository!=null) {
+        	this.localRepository = new LocalRepository(localRepository);
+        } else {
+        	this.localRepository = null;
+        }
         this.extendedLogging = extendedLogging;
         this.releaseUpdatePolicy = releaseUpdatePolicy;
         this.releaseChecksumPolicy = releaseChecksumPolicy;
@@ -208,23 +214,36 @@ public class Aether {
         return out;
     }
 
-    public List<Version> resolveVersions(String groupId, String artifactId) throws VersionRangeResolutionException {
+    public List<Version> resolveVersions(String groupId, String artifactId, String extension) throws VersionRangeResolutionException {
 
-    	RepositorySystemSession session = newSession();
-        ((MavenRepositorySystemSession)session).setUpdatePolicy(RepositoryPolicy.UPDATE_POLICY_ALWAYS);
-
-        Artifact artifact = new DefaultArtifact(groupId, artifactId, null, null, "[0,)");
-
-        VersionRangeRequest rangeRequest = new VersionRangeRequest();
-        rangeRequest.setArtifact(artifact);
-        rangeRequest.setRepositories(repositories);
+        List<Version> versions = new ArrayList<Version>();
+        
         for(RemoteRepository r : repositories) {
-        	log.log(Level.INFO, " ---- adding to eather query: "+r.getUrl());
+        	try {
+            	log.log(Level.INFO, " ---- new repo session .... "+r.getUrl());
+            	MavenRepositorySystemSession session = new MavenRepositorySystemSession();
+            	log.log(Level.INFO, " ---- setting update policy ... ");
+            	session.setUpdatePolicy(RepositoryPolicy.UPDATE_POLICY_ALWAYS);
+            	LocalRepositoryManager lrm = repositorySystem.newLocalRepositoryManager(localRepository);
+            	session.setLocalRepositoryManager(lrm);
+            	log.log(Level.INFO, " ---- creating artifact query ... ");
+                Artifact artifact = new DefaultArtifact(groupId, artifactId, null, extension, "(0,)");
+
+                VersionRangeRequest rangeRequest = new VersionRangeRequest();
+                rangeRequest.setArtifact(artifact);
+                rangeRequest.setRepositories(Collections.singletonList(r));
+                
+        		log.log(Level.INFO, " ---- executing aether query: "+r.getUrl());
+        		VersionRangeResult rangeResult = repositorySystem.resolveVersionRange(session, rangeRequest);
+        		List<Version> vs = rangeResult.getVersions(); 
+        		log.log(Level.INFO, " ---- executing aether query: "+r.getUrl()+" / "+vs.size()+" versions found ... ");
+                versions.addAll(vs);
+			} catch (Exception e) {
+        		log.log(Level.INFO, " ---- adding to eather query failed for: "+r.getUrl(),e);
+			}
         }
 
-        VersionRangeResult rangeResult = repositorySystem.resolveVersionRange( session, rangeRequest );
-
-        return rangeResult.getVersions();
+        return versions;
     }
 
     public void install(Artifact artifact, Artifact pom) throws InstallationException {
