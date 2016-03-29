@@ -114,12 +114,13 @@ public class ArtifactDeployer extends Notifier implements Serializable {
                 final String artifactId = TokenMacro.expandAll(build, listener, a.getArtifactId());
                 final String groupId = TokenMacro.expandAll(build, listener, a.getGroupId());
                 final String packaging = TokenMacro.expandAll(build, listener, a.getExtension());
+                final String targetFileName = TokenMacro.expandAll(build, listener, a.getTargetFileName());
 
-                Artifact aTmp = new Artifact(groupId, artifactId, classifier, version, packaging, a.getTargetFileName());
+                Artifact aTmp = new Artifact(groupId, artifactId, classifier, version, packaging, targetFileName);
 
-                String fileName = aTmp.getTargetFileName();
-                FilePath source = new FilePath(build.getWorkspace(), fileName);
-                String f = new File(fileName).getName();
+                String aTmpFileName = aTmp.getTargetFileName();
+                FilePath source = new FilePath(build.getWorkspace(), aTmpFileName);
+                String f = new File(aTmpFileName).getName();
                 int dotPos = f.lastIndexOf(".");
                 String extension = f.substring(dotPos + 1);
                 final File targetFile = File.createTempFile(f, "." + extension);
