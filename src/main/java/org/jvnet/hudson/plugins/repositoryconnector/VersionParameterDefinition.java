@@ -113,8 +113,7 @@ public class VersionParameterDefinition extends
 
     @Override
     public ParameterValue createValue(String version) {
-        // this should never be called
-        throw new RuntimeException("Not implemented");
+        return new VersionParameterValue(groupid, artifactid, propertyName, version);
     }
 
     @Override
