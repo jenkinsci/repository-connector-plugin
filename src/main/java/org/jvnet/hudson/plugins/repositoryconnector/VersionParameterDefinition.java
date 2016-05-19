@@ -42,7 +42,7 @@ public class VersionParameterDefinition extends
     @DataBoundConstructor
     public VersionParameterDefinition(String repoid, String groupid,
             String artifactid, String propertyName, String description) {
-        super(groupid + "." + artifactid, description);
+        super((propertyName != null && !propertyName.isEmpty()) ? propertyName : groupid + "." + artifactid, description);
         this.repoid = repoid;
         this.groupid = groupid;
         this.artifactid = artifactid;
