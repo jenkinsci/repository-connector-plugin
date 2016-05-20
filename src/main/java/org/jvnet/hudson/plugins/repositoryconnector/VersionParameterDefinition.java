@@ -1,13 +1,6 @@
 package org.jvnet.hudson.plugins.repositoryconnector;
 
-import hudson.Extension;
-import hudson.model.ParameterValue;
-import hudson.model.SimpleParameterDefinition;
-import hudson.model.StringParameterValue;
-import hudson.util.FormValidation;
-
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,13 +8,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.ServletException;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONException;
-import net.sf.json.JSONObject;
-
 import org.jvnet.hudson.plugins.repositoryconnector.aether.Aether;
+import org.jvnet.hudson.plugins.repositoryconnector.aether.VersionRangeResultWithLatest;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -29,6 +17,16 @@ import org.kohsuke.stapler.export.Exported;
 import org.sonatype.aether.resolution.VersionRangeResolutionException;
 import org.sonatype.aether.version.Version;
 
+import hudson.Extension;
+import hudson.model.ParameterValue;
+import hudson.model.SimpleParameterDefinition;
+import hudson.model.StringParameterValue;
+import hudson.util.FormValidation;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONException;
+import net.sf.json.JSONObject;
+
+@SuppressWarnings("serial")
 public class VersionParameterDefinition extends
         SimpleParameterDefinition {
 
@@ -42,7 +40,7 @@ public class VersionParameterDefinition extends
     @DataBoundConstructor
     public VersionParameterDefinition(String repoid, String groupid,
             String artifactid, String propertyName, String description) {
-        super(groupid + "." + artifactid, description);
+        super((propertyName != null && !propertyName.isEmpty()) ? propertyName : groupid + "." + artifactid, description);
         this.repoid = repoid;
         this.groupid = groupid;
         this.artifactid = artifactid;
@@ -55,35 +53,54 @@ public class VersionParameterDefinition extends
             // TODO: StringParameterValue value = (StringParameterValue) defaultValue;
             return new VersionParameterDefinition(getRepoid(), "",
                     "", "", getDescription());
-        } else {
-            return this;
         }
+        return this;
     }
 
     @Exported
-    public List<String> getChoices() {
+    public List<VersionLabel> getChoices() {
         Repository r = DESCRIPTOR.getRepo(repoid);
-        List<String> versionStrings = new ArrayList<String>();
+        List<VersionLabel> items = new ArrayList<VersionLabel>();
         if (r != null) {
             File localRepo = RepositoryConfiguration.get().getLocalRepoPath();
             Aether aether = new Aether(DESCRIPTOR.getRepos(), localRepo);
             try {
-                List<Version> versions = aether.resolveVersions(groupid, artifactid);
+                // Get the versions
+                VersionRangeResultWithLatest versionsWithLatest = aether.resolveVersions(groupid, artifactid);
+                List<Version> versions = versionsWithLatest.getVersions();
+
+                // Reverse order to have the latest versions on top of the list
+                Collections.reverse(versions);
+
+                // Add the choice items
                 for (Version version : versions) {
-                    versionStrings.add(version.toString());
+                    items.add(new VersionLabel(version.toString(), version.toString()));
+                }
+
+                // Add the default parameters as needed
+                if (!items.isEmpty()) {
+                    items.add(0, toDefaultVersion(versionsWithLatest.getLatest(), "LATEST"));
+                    items.add(0, toDefaultVersion(versionsWithLatest.getRelease(), "RELEASE"));
                 }
             } catch (VersionRangeResolutionException ex) {
                 log.log(Level.SEVERE, "Could not determine versions", ex);
             }
-            if (!versionStrings.isEmpty()) {
-                // reverseorder to have the latest versions on top of the list
-                Collections.reverse(versionStrings);
-                // add the default parameters
-                versionStrings.add(0, "LATEST");
-                versionStrings.add(0, "RELEASE");
-            }
         }
-        return versionStrings;
+        return items;
+    }
+
+    /**
+     * Return a version type with its optional resolved version.
+     */
+    private VersionLabel toDefaultVersion(Version version, String type) {
+        log.info("toDefaultVersion "+version+","+type);
+        if (version == null) {
+            // No resolved version for this type
+            return new VersionLabel(type, type);
+        }
+
+        // Return the type with the version as suffix
+        return new VersionLabel(version.toString(), type);
     }
 
     @Exported
@@ -111,10 +128,16 @@ public class VersionParameterDefinition extends
         return new VersionParameterValue(groupid, artifactid, propertyName, jo.getString("value"));
     }
 
+    /**
+     * Creates a {@link ParameterValue} from the string representation. 
+     * Manage Maven artifact definition : <code>group:artifact:version</code> 
+     * @param input The rw input string.
+     * @return a {@link VersionParameterValue} representation. 
+     */
     @Override
-    public ParameterValue createValue(String version) {
-        // this should never be called
-        throw new RuntimeException("Not implemented");
+    public ParameterValue createValue(String input) {
+    	final String[] tokens = input.split(":");
+        return new VersionParameterValue(tokens[0], tokens[1], tokens[2], tokens[3]);
     }
 
     @Override
@@ -174,7 +197,7 @@ public class VersionParameterDefinition extends
 
         public FormValidation doCheckGroupid(@QueryParameter String groupid,
                 @QueryParameter String artifactid,
-                @QueryParameter String repoid) throws IOException {
+                @QueryParameter String repoid) {
             FormValidation result = FormValidation.ok();
             if (groupid == null || groupid.isEmpty()) {
                 result = FormValidation.error(Messages.EmptyGroupId());
@@ -188,8 +211,7 @@ public class VersionParameterDefinition extends
 
         public FormValidation doCheckArtifactid(
                 @QueryParameter String artifactid,
-                @QueryParameter String groupid, @QueryParameter String repoid)
-                throws IOException {
+                @QueryParameter String groupid, @QueryParameter String repoid) {
             FormValidation result = FormValidation.ok();
             if (artifactid == null || artifactid.isEmpty()) {
                 result = FormValidation.error(Messages.EmptyArtifactId());
@@ -207,7 +229,7 @@ public class VersionParameterDefinition extends
             File localRepo = RepositoryConfiguration.get().getLocalRepoPath();
             Aether aether = new Aether(DESCRIPTOR.getRepos(), localRepo);
             try {
-                List<Version> versions = aether.resolveVersions(groupid, artifactid);
+                List<Version> versions = aether.resolveVersions(groupid, artifactid).getVersions();
                 if (versions.isEmpty()) {
                     result = FormValidation.error(Messages.NoVersions() + " " + groupid + "." + artifactid);
                     log.log(Level.FINE, "No versions found for " + groupid + "." + artifactid);
@@ -219,8 +241,7 @@ public class VersionParameterDefinition extends
             return result;
         }
 
-        public FormValidation doCheckRepoid(@QueryParameter String repoid)
-                throws IOException {
+        public FormValidation doCheckRepoid(@QueryParameter String repoid) {
             FormValidation result = FormValidation.ok();
             if (repoid == null || repoid.isEmpty()) {
                 result = FormValidation.error(Messages.EmptyRepositoryName());
@@ -228,8 +249,7 @@ public class VersionParameterDefinition extends
             return result;
         }
 
-        public FormValidation doCheckBaseurl(@QueryParameter String baseurl)
-                throws IOException {
+        public FormValidation doCheckBaseurl(@QueryParameter String baseurl) {
             FormValidation result = FormValidation.ok();
             if (baseurl == null || baseurl.isEmpty()) {
                 result = FormValidation.error(Messages.EmptyBaseURL());
@@ -238,7 +258,7 @@ public class VersionParameterDefinition extends
         }
 
         public FormValidation doCheckPassword(@QueryParameter String password,
-                @QueryParameter String username) throws IOException {
+                @QueryParameter String username) {
             FormValidation result = FormValidation.ok();
             if (password != null && !password.isEmpty()
                     && (username == null || username.isEmpty())) {
@@ -248,15 +268,13 @@ public class VersionParameterDefinition extends
         }
 
         public FormValidation doTestConnection(@QueryParameter String baseurl,
-                @QueryParameter String username, @QueryParameter String password)
-                throws IOException, ServletException {
+                @QueryParameter String username, @QueryParameter String password) {
             try {
                 if (true /*MavenRepositoryClient.testConnection(baseurl, username,
                          password)*/) {
                     return FormValidation.ok(Messages.Success());
-                } else {
-                    return FormValidation.error(Messages.ConnectionFailed());
                 }
+                return FormValidation.error(Messages.ConnectionFailed());
             } catch (Exception e) {
                 log.log(Level.SEVERE, "Client error: " + e.getMessage(), e);
                 return FormValidation.error(Messages.ClientError()
@@ -270,7 +288,8 @@ public class VersionParameterDefinition extends
         }
     }
 
-    public String toString() {
+    @Override
+	public String toString() {
         StringBuffer sb = new StringBuffer();
         sb.append(this.getClass().getSimpleName());
         sb.append("@[");
