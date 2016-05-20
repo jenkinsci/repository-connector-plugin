@@ -6,8 +6,8 @@
 		<div name="parameter" description="${it.description}">
 			<input type="hidden" name="name" value="${it.name}" />
             <select name="value">
-              <j:forEach var="value" items="${it.choices}">
-                <f:option selected="${it.value.isEmpty()}">${value}</f:option>
+              <j:forEach var="choice" items="${it.choices}">
+                <f:option selected="${it.value.isEmpty()}" value="${choice.version}">${choice.label}</f:option>
               </j:forEach>
             </select>
 		</div>
