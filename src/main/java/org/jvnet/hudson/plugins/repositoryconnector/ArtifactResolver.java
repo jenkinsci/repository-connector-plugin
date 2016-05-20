@@ -32,7 +32,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.sonatype.aether.collection.DependencyCollectionException;
 import org.sonatype.aether.repository.RepositoryPolicy;
-import org.sonatype.aether.resolution.ArtifactResolutionException;
 import org.sonatype.aether.resolution.DependencyResolutionException;
 
 /**
@@ -147,8 +146,6 @@ public class ArtifactResolver extends Builder implements Serializable {
 
             } catch (DependencyCollectionException e) {
                 hasError = logError("failed collecting dependency info for " + a, logger, e);
-            } catch (ArtifactResolutionException e) {
-                hasError = logError("failed to resolve artifact for " + a, logger, e);
             } catch (IOException e) {
                 hasError = logError("failed collecting dependency info for " + a, logger, e);
             } catch (InterruptedException e) {
@@ -201,7 +198,8 @@ public class ArtifactResolver extends Builder implements Serializable {
         return true;
     }
 
-    public DescriptorImpl getDescriptor() {
+    @Override
+	public DescriptorImpl getDescriptor() {
         return DESCRIPTOR;
     }
 
@@ -209,14 +207,13 @@ public class ArtifactResolver extends Builder implements Serializable {
     public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
 
-        public DescriptorImpl() {
-        }
-
-        public boolean isApplicable(Class<? extends AbstractProject> aClass) {
+        @Override
+		public boolean isApplicable(Class<? extends AbstractProject> aClass) {
             return true;
         }
 
-        public String getDisplayName() {
+        @Override
+		public String getDisplayName() {
             return Messages.ArtifactResolver();
         }
 
