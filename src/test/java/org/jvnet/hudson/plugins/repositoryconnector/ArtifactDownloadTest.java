@@ -35,7 +35,6 @@ public class ArtifactDownloadTest {
         ArtifactResolver resolver = new ArtifactResolver("target", Collections.singletonList(a), true, false, "always", null, "always", null);
         
         p.getBuildersList().add(resolver);
-        p.getBuildersList().add(new Shell("ls -ltr"));
         p.getBuildersList().add(new VerifyBuilder("target/myJar.jar"));
 
         j.assertBuildStatus(Result.SUCCESS, p.scheduleBuild2(0, new UserCause()).get());
