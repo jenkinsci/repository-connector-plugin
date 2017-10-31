@@ -22,11 +22,12 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import jenkins.model.Jenkins;
-
 import org.apache.commons.lang.StringUtils;
-import org.apache.maven.repository.internal.DefaultServiceLocator;
+import org.apache.maven.repository.internal.DefaultArtifactDescriptorReader;
+import org.apache.maven.repository.internal.DefaultVersionResolver;
 import org.apache.maven.repository.internal.MavenRepositorySystemSession;
+import org.apache.maven.repository.internal.SnapshotMetadataGeneratorFactory;
+import org.apache.maven.repository.internal.VersionsMetadataGeneratorFactory;
 import org.jvnet.hudson.plugins.repositoryconnector.Repository;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
@@ -39,6 +40,11 @@ import org.sonatype.aether.deployment.DeployRequest;
 import org.sonatype.aether.deployment.DeploymentException;
 import org.sonatype.aether.graph.Dependency;
 import org.sonatype.aether.graph.DependencyNode;
+import org.sonatype.aether.impl.ArtifactDescriptorReader;
+import org.sonatype.aether.impl.MetadataGeneratorFactory;
+import org.sonatype.aether.impl.VersionRangeResolver;
+import org.sonatype.aether.impl.VersionResolver;
+import org.sonatype.aether.impl.internal.DefaultServiceLocator;
 import org.sonatype.aether.installation.InstallRequest;
 import org.sonatype.aether.installation.InstallationException;
 import org.sonatype.aether.repository.Authentication;
@@ -46,19 +52,18 @@ import org.sonatype.aether.repository.LocalRepository;
 import org.sonatype.aether.repository.Proxy;
 import org.sonatype.aether.repository.RemoteRepository;
 import org.sonatype.aether.repository.RepositoryPolicy;
-import org.sonatype.aether.resolution.ArtifactResolutionException;
 import org.sonatype.aether.resolution.DependencyRequest;
 import org.sonatype.aether.resolution.DependencyResolutionException;
 import org.sonatype.aether.resolution.DependencyResult;
 import org.sonatype.aether.resolution.VersionRangeRequest;
 import org.sonatype.aether.resolution.VersionRangeResolutionException;
-import org.sonatype.aether.resolution.VersionRangeResult;
 import org.sonatype.aether.spi.connector.RepositoryConnectorFactory;
 import org.sonatype.aether.util.DefaultRepositorySystemSession;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
 import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
 import org.sonatype.aether.util.repository.DefaultProxySelector;
-import org.sonatype.aether.version.Version;
+
+import jenkins.model.Jenkins;
 
 public class Aether {
         private static final Logger log = Logger.getLogger(Aether.class.getName());
@@ -172,8 +177,15 @@ public class Aether {
 
     private RepositorySystem newManualSystem() {
         DefaultServiceLocator locator = new DefaultServiceLocator();
+        locator.addService(ArtifactDescriptorReader.class, DefaultArtifactDescriptorReader.class );
+        locator.addService(VersionResolver.class, DefaultVersionResolver.class );
+        locator.addService(MetadataGeneratorFactory.class, SnapshotMetadataGeneratorFactory.class );
+        locator.addService(MetadataGeneratorFactory.class, VersionsMetadataGeneratorFactory.class );
         locator.setServices(WagonProvider.class, new org.jvnet.hudson.plugins.repositoryconnector.wagon.ManualWagonProvider());
         locator.addService(RepositoryConnectorFactory.class, WagonRepositoryConnectorFactory.class);
+        
+        // Our custom version range resolver
+        locator.addService(VersionRangeResolver.class, ReleasedVersionRangeResolver.class);
         return locator.getService(RepositorySystem.class);
     }
 
@@ -193,7 +205,7 @@ public class Aether {
     }
 
     public AetherResult resolve(String groupId, String artifactId, String classifier, String extension, String version)
-            throws DependencyCollectionException, ArtifactResolutionException, DependencyResolutionException {
+            throws DependencyCollectionException, DependencyResolutionException {
         RepositorySystemSession session = newSession();
         Dependency dependency = new Dependency(new DefaultArtifact(groupId, artifactId, classifier, extension, version), "provided");
 
@@ -212,18 +224,16 @@ public class Aether {
         return new AetherResult(rootNode, nlg.getFiles());
     }
 
-    public List<Version> resolveVersions(String groupId, String artifactId)
+    public VersionRangeResultWithLatest resolveVersions(String groupId, String artifactId)
             throws VersionRangeResolutionException {
         RepositorySystemSession session = newSession();
         Artifact artifact = new DefaultArtifact(groupId, artifactId, null, null, "[0,)");
 
-                VersionRangeRequest rangeRequest = new VersionRangeRequest();
-                rangeRequest.setArtifact( artifact );
-                rangeRequest.setRepositories( repositories );
+        VersionRangeRequest rangeRequest = new VersionRangeRequest();
+        rangeRequest.setArtifact( artifact );
+        rangeRequest.setRepositories( repositories );
 
-                VersionRangeResult rangeResult = repositorySystem.resolveVersionRange( session, rangeRequest );
-
-                return rangeResult.getVersions();
+        return (VersionRangeResultWithLatest)repositorySystem.resolveVersionRange( session, rangeRequest );
     }
 
     public void install(Artifact artifact, Artifact pom) throws InstallationException {
