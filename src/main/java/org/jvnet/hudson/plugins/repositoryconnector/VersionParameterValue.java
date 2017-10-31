@@ -38,7 +38,8 @@ public class VersionParameterValue extends StringParameterValue {
         this.propertyName = propertyName;
     }
 
-    public String toString() {
+    @Override
+	public String toString() {
         StringBuffer sb = new StringBuffer();
         sb.append(this.getClass().getSimpleName());
         sb.append("@[");
@@ -50,6 +51,8 @@ public class VersionParameterValue extends StringParameterValue {
         sb.append(artifactid);
         sb.append(", propertyName=");
         sb.append(propertyName);
+        sb.append(", version=");
+        sb.append(getValue());
         sb.append(']');
         return sb.toString();
     }
