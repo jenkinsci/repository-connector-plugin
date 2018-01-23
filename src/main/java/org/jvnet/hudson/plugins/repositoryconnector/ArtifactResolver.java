@@ -49,6 +49,8 @@ public class ArtifactResolver extends Builder implements SimpleBuildStep, Serial
 
     private static final long serialVersionUID = 1L;
 
+    private static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
+    
     private static Logger log = Logger.getLogger(ArtifactResolver.class.getName());
 
     private static final String DEFAULT_TARGET = "";
@@ -97,6 +99,11 @@ public class ArtifactResolver extends Builder implements SimpleBuildStep, Serial
         this.releaseChecksumPolicy = RepositoryPolicy.CHECKSUM_POLICY_WARN;
         this.snapshotUpdatePolicy = snapshotUpdatePolicy;
         this.snapshotChecksumPolicy = RepositoryPolicy.CHECKSUM_POLICY_WARN;
+    }
+    
+    @Override
+    public Descriptor<Builder> getDescriptor() {
+        return DESCRIPTOR;
     }
     
     /**
