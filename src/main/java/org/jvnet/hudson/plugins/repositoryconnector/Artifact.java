@@ -2,7 +2,14 @@ package org.jvnet.hudson.plugins.repositoryconnector;
 
 import java.io.Serializable;
 
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+
+import hudson.Extension;
+import hudson.ExtensionPoint;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.Descriptor;
 
 /**
  * Represents an artifact to be resolved or uploaded.
@@ -10,32 +17,29 @@ import org.kohsuke.stapler.DataBoundConstructor;
  * @author domi
  * 
  */
-public class Artifact implements Serializable {
+public class Artifact extends AbstractDescribableImpl<Artifact> implements ExtensionPoint, Serializable {
 
-   private static final long serialVersionUID = 1L;
+    private static final String DEFAULT_EXTENSION = "jar";
+    private static final String EMPTY_SPACE = "";
+    
+    private static final long serialVersionUID = 1L;
 
     private final String groupId;
     private final String artifactId;
-    private final String classifier;
+    private String classifier;
     private final String version;
-    private final String extension;
-    private final String targetFileName;
+    private String extension;
+    private String targetFileName;
 
-   @DataBoundConstructor
-    public Artifact(String groupId, String artifactId, String classifier, String version, String extension, String targetFileName) {
+    @DataBoundConstructor
+    public Artifact(String groupId, String artifactId, String version) {
         this.groupId = groupId;
         this.artifactId = artifactId;
-        this.classifier = classifier == null ? "" : classifier;
-        this.extension = extension == null ? "jar" : extension;
         this.version = version;
-        this.targetFileName = targetFileName;
-    }
-
-    /**
-     * @return the groupId
-     */
-    public String getGroupId() {
-        return groupId;
+        
+        this.classifier = EMPTY_SPACE;
+        this.extension = DEFAULT_EXTENSION;
+        this.targetFileName = EMPTY_SPACE;
     }
 
     /**
@@ -46,12 +50,12 @@ public class Artifact implements Serializable {
     }
 
     /**
-     * @return the version
+     * @return the classifier
      */
-    public String getVersion() {
-        return version;
+    public String getClassifier() {
+        return classifier;
     }
-
+    
     /**
      * @return the extension
      */
@@ -60,10 +64,10 @@ public class Artifact implements Serializable {
     }
 
     /**
-     * @return the classifier
+     * @return the groupId
      */
-    public String getClassifier() {
-        return classifier;
+    public String getGroupId() {
+        return groupId;
     }
 
     /**
@@ -73,8 +77,40 @@ public class Artifact implements Serializable {
         return targetFileName;
     }
 
+    /**
+     * @return the version
+     */
+    public String getVersion() {
+        return version;
+    }
+
+    @DataBoundSetter
+    public void setClassifier(String classifier) {
+        this.classifier = classifier;
+    }
+
+    @DataBoundSetter
+    public void setExtension(String extension) {
+        this.extension = extension;
+    }
+
+    @DataBoundSetter
+    public void setTargetFileName(String targetFileName) {
+        this.targetFileName = targetFileName;
+    }
+
     @Override
     public String toString() {
         return "[Artifact " + groupId + ":" + artifactId + ":" + extension + ":" + classifier + ":" + version + "]";
+    }
+    
+    @Extension
+    @Symbol("artifact")
+    public static class DescriptorImpl extends Descriptor<Artifact>
+    {
+        @Override
+        public String getDisplayName() {
+            return "artifact";
+        }
     }
 }
