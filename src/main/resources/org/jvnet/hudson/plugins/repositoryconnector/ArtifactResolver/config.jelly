@@ -1,40 +1,33 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
 	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-	<f:entry title="${%FailOnError}"
-		description="${%FailOnErrorDescription}">
-		<f:checkbox name="failOnError" checked="${instance.failOnError()}" />
+	<f:entry title="${%FailOnError}" description="${%FailOnErrorDescription}" field="failOnError">
+		<f:checkbox default="${descriptor.defaultFailOnError}"/>
 	</f:entry>
 
-	<f:entry title="${%EnableRepositoryLogging}" description="${%EnableRepositoryLoggingDescription}">
-		<f:checkbox name="enableRepoLogging" checked="${instance.enableRepoLogging()}" />
+	<f:entry title="${%EnableRepositoryLogging}" description="${%EnableRepositoryLoggingDescription}" field="enableRepoLogging">
+		<f:checkbox default="${descriptor.defaultEnableRepoLogging}"/>
 	</f:entry>
 
-	<f:entry title="${%TargetDirectory}">
-		<f:textbox name="targetDirectory" value="${instance.targetDirectory}" />
+	<f:entry title="${%TargetDirectory}" field="targetDirectory">
+		<f:textbox />
 	</f:entry>
 
-	<f:entry title="${%ReleaseUpdatePolicy}">
-		<select class="setting-input" name="releaseUpdatePolicy">
-			<f:option selected="${instance.releaseUpdatePolicy=='daily'}"
-				value="never">daily</f:option>
-			<f:option selected="${instance.releaseUpdatePolicy=='never'}"
-				value="never">never</f:option>
-			<f:option selected="${instance.releaseUpdatePolicy=='always'}"
-				value="always">always</f:option>
-		</select>
+	<f:entry title="${%ReleaseUpdatePolicy}" field="releaseUpdatePolicy">
+		<f:select />
+	</f:entry>
+	
+	<f:entry title="${%ReleaseChecksumPolicy}" field="releaseChecksumPolicy">
+        <f:select />
+    </f:entry>
+
+	<f:entry title="${%SnapshotUpdatePolicy}" field="snapshotUpdatePolicy">
+        <f:select />
 	</f:entry>
 
-	<f:entry title="${%SnapshotUpdatePolicy}">
-		<select class="setting-input" name="snapshotUpdatePolicy">
-			<f:option selected="${instance.snapshotUpdatePolicy=='daily'}"
-				value="never">daily</f:option>
-			<f:option selected="${instance.snapshotUpdatePolicy=='never'}"
-				value="never">never</f:option>
-			<f:option selected="${instance.snapshotUpdatePolicy=='always'}"
-				value="always">always</f:option>
-		</select>
-	</f:entry>
+    <f:entry title="${%SnapshotChecksumPolicy}" field="snapshotChecksumPolicy">
+        <f:select />
+    </f:entry>	
 
 	<f:entry title="${%Artifacts}">
 		<f:repeatable var="artifact" items="${instance.artifacts}"

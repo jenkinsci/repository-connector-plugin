@@ -1,17 +1,5 @@
 package org.jvnet.hudson.plugins.repositoryconnector;
 
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.model.BuildListener;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Descriptor;
-import hudson.model.ParameterValue;
-import hudson.model.ParametersAction;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.Builder;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -25,21 +13,39 @@ import java.util.logging.Logger;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.tokenmacro.TokenMacro;
 import org.jvnet.hudson.plugins.repositoryconnector.aether.Aether;
 import org.jvnet.hudson.plugins.repositoryconnector.aether.AetherResult;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.sonatype.aether.collection.DependencyCollectionException;
 import org.sonatype.aether.repository.RepositoryPolicy;
 import org.sonatype.aether.resolution.DependencyResolutionException;
+
+import hudson.AbortException;
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.Util;
+import hudson.model.AbstractProject;
+import hudson.model.Descriptor;
+import hudson.model.ParameterValue;
+import hudson.model.ParametersAction;
+import hudson.model.Run;
+import hudson.model.TaskListener;
+import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.Builder;
+import hudson.util.ListBoxModel;
+import jenkins.tasks.SimpleBuildStep;
 
 /**
  * This builder allows to resolve artifacts from a repository and copy it to any location.
  * 
  * @author domi
  */
-public class ArtifactResolver extends Builder implements Serializable {
+public class ArtifactResolver extends Builder implements SimpleBuildStep, Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -47,16 +53,40 @@ public class ArtifactResolver extends Builder implements Serializable {
 
     private static final String DEFAULT_TARGET = "";
 
-    public String targetDirectory;
-    public List<Artifact> artifacts;
-    public boolean failOnError = true;
-    public boolean enableRepoLogging = true;
-    public final String snapshotUpdatePolicy;
-    public final String releaseUpdatePolicy;
-    public final String snapshotChecksumPolicy;
-    public final String releaseChecksumPolicy;
+    private String targetDirectory;
+    
+    private final List<Artifact> artifacts;
+    
+    private boolean failOnError = true;
+    
+    private boolean enableRepoLogging = true;
+    
+    private String snapshotUpdatePolicy;
+    
+    private String releaseUpdatePolicy;
+    
+    private String snapshotChecksumPolicy;
+    
+    private String releaseChecksumPolicy;
     
     @DataBoundConstructor
+    public ArtifactResolver(List<Artifact> artifacts)
+    {
+        this.artifacts = artifacts;
+        
+        this.targetDirectory = DEFAULT_TARGET;
+        
+        this.failOnError = DescriptorImpl.defaultFailOnError;
+        this.enableRepoLogging = DescriptorImpl.defaultEnableRepoLogging;
+        
+        this.releaseUpdatePolicy = DescriptorImpl.defaultReleaseUpdatePolicy;
+        this.releaseChecksumPolicy = DescriptorImpl.defaultReleaseChecksumPolicy;
+        
+        this.snapshotUpdatePolicy = DescriptorImpl.defaultSnapshotUpdatePolicy;
+        this.snapshotChecksumPolicy = DescriptorImpl.defaultSnapshotChecksumPolicy;
+    }
+
+    @Deprecated
     public ArtifactResolver(String targetDirectory, List<Artifact> artifacts, boolean failOnError, boolean enableRepoLogging, String snapshotUpdatePolicy,
             String snapshotChecksumPolicy, String releaseUpdatePolicy, String releaseChecksumPolicy) {
         this.artifacts = artifacts != null ? artifacts : new ArrayList<Artifact>();
@@ -68,19 +98,7 @@ public class ArtifactResolver extends Builder implements Serializable {
         this.snapshotUpdatePolicy = snapshotUpdatePolicy;
         this.snapshotChecksumPolicy = RepositoryPolicy.CHECKSUM_POLICY_WARN;
     }
-
-    public String getTargetDirectory() {
-        return StringUtils.isBlank(targetDirectory) ? DEFAULT_TARGET : targetDirectory;
-    }
-
-    public boolean failOnError() {
-        return failOnError;
-    }
-
-    public boolean enableRepoLogging() {
-        return enableRepoLogging;
-    }
-
+    
     /**
      * gets the artifacts
      * 
@@ -90,22 +108,85 @@ public class ArtifactResolver extends Builder implements Serializable {
         return artifacts;
     }
 
-    @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
+    public String getReleaseChecksumPolicy() {
+        return releaseChecksumPolicy;
+    }
 
+    public String getReleaseUpdatePolicy() {
+        return releaseUpdatePolicy;
+    }
+
+    public String getSnapshotChecksumPolicy() {
+        return snapshotChecksumPolicy;
+    }
+
+    public String getSnapshotUpdatePolicy() {
+        return snapshotUpdatePolicy;
+    }
+
+    public String getTargetDirectory() {
+        return targetDirectory;
+    }
+
+    public boolean isEnableRepoLogging() {
+        return enableRepoLogging;
+    }
+
+    public boolean isFailOnError() {
+        return failOnError;
+    }
+
+    @Override
+    public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener)
+        throws InterruptedException, IOException {
+        
         final PrintStream logger = listener.getLogger();
         final Collection<Repository> repositories = RepositoryConfiguration.get().getRepos();
 
         File localRepo = RepositoryConfiguration.get().getLocalRepoPath();
-        boolean failed = download(build, listener, logger, repositories, localRepo);
+        boolean failed = download(run, workspace, listener, logger, repositories, localRepo);
 
         if (failed && failOnError) {
-            return false;
+            throw new AbortException("Failed to resolve artifact");
         }
-        return true;
     }
 
-    private boolean download(AbstractBuild<?, ?> build, BuildListener listener, final PrintStream logger, final Collection<Repository> repositories,
+    @DataBoundSetter
+    public void setEnableRepoLogging(boolean enableRepoLogging) {
+        this.enableRepoLogging = enableRepoLogging;
+    }
+
+    @DataBoundSetter
+    public void setFailOnError(boolean failOnError) {
+        this.failOnError = failOnError;
+    }
+
+    @DataBoundSetter
+    public void setReleaseChecksumPolicy(String releaseChecksumPolicy) {
+        this.releaseChecksumPolicy = releaseChecksumPolicy;
+    }
+
+    @DataBoundSetter
+    public void setReleaseUpdatePolicy(String releaseUpdatePolicy) {
+        this.releaseUpdatePolicy = releaseUpdatePolicy;
+    }
+
+    @DataBoundSetter
+    public void setSnapshotChecksumPolicy(String snapshotChecksumPolicy) {
+        this.snapshotChecksumPolicy = snapshotChecksumPolicy;
+    }
+
+    @DataBoundSetter
+    public void setSnapshotUpdatePolicy(String snapshotUpdatePolicy) {
+        this.snapshotUpdatePolicy = snapshotUpdatePolicy;
+    }
+
+    @DataBoundSetter
+    public void setTargetDirectory(String targetDirectory) {
+        this.targetDirectory = Util.fixNull(targetDirectory);
+    }
+
+    private boolean download(Run<?, ?> run, FilePath workspace, TaskListener listener, final PrintStream logger, final Collection<Repository> repositories,
             File localRepository) {
         boolean hasError = false;
 
@@ -116,15 +197,15 @@ public class ArtifactResolver extends Builder implements Serializable {
 
             try {
 
-                final String classifier = TokenMacro.expandAll(build, listener, a.getClassifier());
-                final String artifactId = TokenMacro.expandAll(build, listener, a.getArtifactId());
-                final String groupId = TokenMacro.expandAll(build, listener, a.getGroupId());
-                final String extension = TokenMacro.expandAll(build, listener, a.getExtension());
-                final String targetFileName = TokenMacro.expandAll(build, listener, a.getTargetFileName());
-                final String expandedTargetDirectory = TokenMacro.expandAll(build, listener, getTargetDirectory());
+                final String classifier = TokenMacro.expandAll(run, workspace, listener, a.getClassifier());
+                final String artifactId = TokenMacro.expandAll(run, workspace, listener, a.getArtifactId());
+                final String groupId = TokenMacro.expandAll(run, workspace, listener, a.getGroupId());
+                final String extension = TokenMacro.expandAll(run, workspace, listener, a.getExtension());
+                final String targetFileName = TokenMacro.expandAll(run, workspace, listener, a.getTargetFileName());
+                final String expandedTargetDirectory = TokenMacro.expandAll(run, workspace, listener, getTargetDirectory());
 
-                String version = TokenMacro.expandAll(build, listener, a.getVersion());
-                version = checkVersionOverride(build, listener, groupId, artifactId, version);
+                String version = TokenMacro.expandAll(run, workspace, listener, a.getVersion());
+                version = checkVersionOverride(run, listener, groupId, artifactId, version);
 
                 AetherResult result = aether.resolve(groupId, artifactId, classifier, extension, version);
 
@@ -134,7 +215,7 @@ public class ArtifactResolver extends Builder implements Serializable {
                     String fileName = StringUtils.isBlank(targetFileName) ? file.getName() : targetFileName;
                     FilePath source = new FilePath(file);
                     String targetDir = StringUtils.isNotBlank(expandedTargetDirectory) ? expandedTargetDirectory + "/" : "";  
-                    FilePath target = new FilePath(build.getWorkspace(), targetDir + fileName);
+                    FilePath target = new FilePath(workspace, targetDir + fileName);
                     boolean wasDeleted = target.delete();
                     if (wasDeleted) {
                         logger.println("deleted " + target.toURI());
@@ -159,21 +240,21 @@ public class ArtifactResolver extends Builder implements Serializable {
         }
         return hasError;
     }
-
+    
     /**
      * This method searches for a build parameter of type VersionParameterValue and
      * substitutes the configured version by the one, defined by the parameter.
      *
-     * @param build the build
+     * @param run the build run
      * @param listener the build listener
      * @param groupId the Maven group id
      * @param artifactId the Maven artifact id
      * @param version the version
      * @return The overridden version
      */
-    private String checkVersionOverride(AbstractBuild<?, ?> build, BuildListener listener, String groupId, String artifactId, String version) {
+    private String checkVersionOverride(Run<?, ?> run, TaskListener listener, String groupId, String artifactId, String version) {
         String result = version;
-        List<ParametersAction> parameterActionList = build.getActions(ParametersAction.class);
+        List<ParametersAction> parameterActionList = run.getActions(ParametersAction.class);
         for (ParametersAction parameterAction : parameterActionList) {
             List<ParameterValue> parameterValueList = parameterAction.getParameters();
             for (ParameterValue parameterValue : parameterValueList) {
@@ -198,28 +279,73 @@ public class ArtifactResolver extends Builder implements Serializable {
         return true;
     }
 
-    @Override
-	public DescriptorImpl getDescriptor() {
-        return DESCRIPTOR;
-    }
-
     @Extension
-    public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
+    @Symbol("artifactResolver")
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
-
+        public static final boolean defaultFailOnError = true;
+        public static final boolean defaultEnableRepoLogging = true;
+        
+        public static final String defaultReleaseUpdatePolicy = RepositoryPolicy.UPDATE_POLICY_DAILY;
+        public static final String defaultReleaseChecksumPolicy = RepositoryPolicy.CHECKSUM_POLICY_WARN;
+        
+        public static final String defaultSnapshotUpdatePolicy =  RepositoryPolicy.UPDATE_POLICY_DAILY;
+        public static final String defaultSnapshotChecksumPolicy = RepositoryPolicy.CHECKSUM_POLICY_WARN;
+        
+        private static final String[] CHECKSUM_POLICIES = { 
+                RepositoryPolicy.CHECKSUM_POLICY_WARN,
+                RepositoryPolicy.CHECKSUM_POLICY_IGNORE, 
+                RepositoryPolicy.CHECKSUM_POLICY_FAIL
+        };
+        
+        private static final String[] UPDATE_POLICIES = {
+                RepositoryPolicy.UPDATE_POLICY_DAILY,
+                RepositoryPolicy.UPDATE_POLICY_ALWAYS, 
+                RepositoryPolicy.UPDATE_POLICY_NEVER 
+        };
+        
         @Override
-		public boolean isApplicable(Class<? extends AbstractProject> aClass) {
+        public boolean configure(StaplerRequest req, JSONObject formData) throws Descriptor.FormException {
             return true;
         }
 
+        public ListBoxModel doFillReleaseChecksumPolicyItems() {
+            return createSelectItems(CHECKSUM_POLICIES, defaultReleaseChecksumPolicy);
+        }
+        
+        public ListBoxModel doFillReleaseUpdatePolicyItems() {
+            return createSelectItems(UPDATE_POLICIES, defaultReleaseUpdatePolicy);
+        }
+        
+        public ListBoxModel doFillSnapshotChecksumPolicyItems() {
+            return createSelectItems(CHECKSUM_POLICIES, defaultSnapshotChecksumPolicy);
+        }        
+          
+        public ListBoxModel doFillSnapshotUpdatePolicyItems() {
+            return createSelectItems(UPDATE_POLICIES, defaultSnapshotUpdatePolicy);
+        }
+        
         @Override
 		public String getDisplayName() {
             return Messages.ArtifactResolver();
         }
 
         @Override
-        public boolean configure(StaplerRequest req, JSONObject formData) throws Descriptor.FormException {
+		public boolean isApplicable(Class<? extends AbstractProject> aClass) {
             return true;
+        }
+
+        private ListBoxModel createSelectItems(String[] choices, String dflt) {
+            ListBoxModel items = new ListBoxModel();
+            
+            for (int i = 0; i < choices.length; i++) {
+                items.add(choices[i]);
+                
+                if (dflt.equals(choices[i])) {
+                    items.get(i).selected = true;
+                }                
+            }
+            
+            return items;
         }
     }
 }
