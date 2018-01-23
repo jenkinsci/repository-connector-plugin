@@ -1,24 +1,25 @@
 package org.jvnet.hudson.plugins.repositoryconnector;
 
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.model.BuildListener;
-import hudson.model.Result;
-import hudson.model.AbstractBuild;
-import hudson.model.Cause.UserCause;
-import hudson.model.FreeStyleProject;
-import hudson.model.ParametersDefinitionProperty;
-import hudson.model.StringParameterDefinition;
-import hudson.tasks.Builder;
-import hudson.tasks.Shell;
-
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
+import hudson.model.FreeStyleProject;
+import hudson.model.ParametersDefinitionProperty;
+import hudson.model.Result;
+import hudson.model.StringParameterDefinition;
+import hudson.model.Cause.UserCause;
+import hudson.tasks.Builder;
 
 public class ArtifactDownloadTest {
 
@@ -30,9 +31,12 @@ public class ArtifactDownloadTest {
         j.jenkins.getInjector().injectMembers(this);
 
         FreeStyleProject p = j.createFreeStyleProject();
-
-        Artifact a = new Artifact("commons-logging", "commons-logging", null, "1.0.4", "jar", "myJar.jar");
-        ArtifactResolver resolver = new ArtifactResolver("target", Collections.singletonList(a), true, false, "always", null, "always", null);
+        
+        Artifact a = new Artifact("commons-logging", "commons-logging", "1.0.4");
+        a.setTargetFileName("myJar.jar");
+        
+        ArtifactResolver resolver = createArtifactResolver(null, a);
+        resolver.setTargetDirectory("target");
         
         p.getBuildersList().add(resolver);
         p.getBuildersList().add(new VerifyBuilder("target/myJar.jar"));
@@ -40,15 +44,16 @@ public class ArtifactDownloadTest {
         j.assertBuildStatus(Result.SUCCESS, p.scheduleBuild2(0, new UserCause()).get());
     }
     
-    
     @Test
     public void downloadWithFixVersionAndTargetName() throws Exception {
         j.jenkins.getInjector().injectMembers(this);
 
         FreeStyleProject p = j.createFreeStyleProject();
 
-        Artifact a = new Artifact("commons-logging", "commons-logging", null, "1.0", "jar", "myJar.jar");
-        ArtifactResolver resolver = new ArtifactResolver(null, Collections.singletonList(a), true, false, "always", null, "always", null);
+        Artifact a = new Artifact("commons-logging", "commons-logging", "1.0");
+        a.setTargetFileName("myJar.jar");
+        
+        ArtifactResolver resolver = createArtifactResolver(null, a);
         
         p.getBuildersList().add(resolver);
         p.getBuildersList().add(new VerifyBuilder("myJar.jar"));
@@ -62,8 +67,8 @@ public class ArtifactDownloadTest {
 
         FreeStyleProject p = j.createFreeStyleProject();
 
-        Artifact a = new Artifact("commons-logging", "commons-logging", null, "1.0.1", "jar", null);
-        ArtifactResolver resolver = new ArtifactResolver(null, Collections.singletonList(a), true, false, "always", null, "always", null);
+        Artifact a = new Artifact("commons-logging", "commons-logging", "1.0.1");        
+        ArtifactResolver resolver = createArtifactResolver(null, a);
         
         p.getBuildersList().add(resolver);
         p.getBuildersList().add(new VerifyBuilder("commons-logging-1.0.1.jar"));
@@ -77,8 +82,12 @@ public class ArtifactDownloadTest {
 
         FreeStyleProject p = j.createFreeStyleProject();
 
-        Artifact a = new Artifact("${MY_ARTID}", "${MY_GROUP}", "${MY_CLASSIFIER}", "${MY_VERSION}", "${MY_EXT}", "${MY_FILE}");
-        ArtifactResolver resolver = new ArtifactResolver(null, Collections.singletonList(a), true, false, "always", null, "always", null);
+        Artifact a = new Artifact("${MY_ARTID}", "${MY_GROUP}", "${MY_VERSION}");
+        a.setClassifier("${MY_CLASSIFIER}");
+        a.setExtension("${MY_EXT}");
+        a.setTargetFileName("${MY_FILE}");
+        
+        ArtifactResolver resolver = createArtifactResolver(null, a);
         
         p.getBuildersList().add(resolver);
         p.getBuildersList().add(new VerifyBuilder("aFile.jar"));
@@ -96,6 +105,17 @@ public class ArtifactDownloadTest {
         j.assertBuildStatus(Result.SUCCESS, p.scheduleBuild2(0, new UserCause()).get());
     }    
 
+    private ArtifactResolver createArtifactResolver(String targetDir, Artifact... artifacts) {
+        ArtifactResolver resolver = new ArtifactResolver(Arrays.asList(artifacts));
+        resolver.setTargetDirectory(targetDir);
+        
+        resolver.setEnableRepoLogging(false);
+        resolver.setReleaseUpdatePolicy("always");
+        resolver.setSnapshotUpdatePolicy("always");
+
+        return resolver;
+    }
+    
     private static final class VerifyBuilder extends Builder {
 
         private final String expectedFile;
