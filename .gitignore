@@ -11,3 +11,5 @@ nbactions.xml
 repository-connector.iml
 .idea
 .README.md.html
+pom.xml.releaseBackup
+release.properties
