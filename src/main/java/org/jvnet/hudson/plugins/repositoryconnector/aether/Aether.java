@@ -70,6 +70,7 @@ public class Aether {
 
     private final List<RemoteRepository> repositories = new ArrayList<RemoteRepository>();
     private final RepositorySystem repositorySystem;
+    private final RepositorySystemSession session;
     private final LocalRepository localRepository;
     private final PrintStream logger;
     private final boolean extendedLogging;
@@ -86,8 +87,9 @@ public class Aether {
     public Aether(Collection<Repository> remoteRepositories, File localRepository, PrintStream logger, boolean extendedLogging,
             String snapshotUpdatePolicy, String snapshotChecksumPolicy, String releaseUpdatePolicy, String releaseChecksumPolicy) {
         this.logger = logger;
-        this.repositorySystem = newManualSystem();
         this.localRepository = new LocalRepository(localRepository);
+        this.repositorySystem = newManualSystem();
+        this.session = newSession();
         this.extendedLogging = extendedLogging;
         this.releaseUpdatePolicy = releaseUpdatePolicy;
         this.releaseChecksumPolicy = releaseChecksumPolicy;
@@ -101,6 +103,7 @@ public class Aether {
         this.localRepository = new LocalRepository(localRepository);
         this.extendedLogging = extendedLogging;
         this.repositorySystem = newManualSystem();
+        this.session = newSession();
     }
 
     private void initRemoteRepos(Collection<Repository> remoteRepositories) {
@@ -129,6 +132,9 @@ public class Aether {
                 // @see org.sonatype.aether.impl.internal.DefaultMetadataResolver#getEnabledSourceRepositories(org.sonatype.aether.repository.RemoteRepository, org.sonatype.aether.metadata.Metadata.Nature)
                 repoObj.setMirroredRepositories(resolveMirrors(repoObj));
             }
+            if (session.getProxySelector() != null) {
+              repoObj.setProxy(session.getProxySelector().getProxy(repoObj));
+            }
             repositories.add(repoObj);
         }
     }
@@ -153,7 +159,7 @@ public class Aether {
 		}
 	}
 
-	public String convertHudsonNonProxyToJavaNonProxy(String hudsonNonProxy) {
+	public static String convertHudsonNonProxyToJavaNonProxy(String hudsonNonProxy) {
         if (StringUtils.isEmpty(hudsonNonProxy)) {
             return "";
         }
@@ -206,7 +212,6 @@ public class Aether {
 
     public AetherResult resolve(String groupId, String artifactId, String classifier, String extension, String version)
             throws DependencyCollectionException, DependencyResolutionException {
-        RepositorySystemSession session = newSession();
         Dependency dependency = new Dependency(new DefaultArtifact(groupId, artifactId, classifier, extension, version), "provided");
 
         CollectRequest collectRequest = new CollectRequest(dependency, repositories);
@@ -226,7 +231,6 @@ public class Aether {
 
     public VersionRangeResultWithLatest resolveVersions(String groupId, String artifactId)
             throws VersionRangeResolutionException {
-        RepositorySystemSession session = newSession();
         Artifact artifact = new DefaultArtifact(groupId, artifactId, null, null, "[0,)");
 
         VersionRangeRequest rangeRequest = new VersionRangeRequest();
@@ -237,8 +241,6 @@ public class Aether {
     }
 
     public void install(Artifact artifact, Artifact pom) throws InstallationException {
-        RepositorySystemSession session = newSession();
-
         InstallRequest installRequest = new InstallRequest();
         installRequest.addArtifact(artifact).addArtifact(pom);
 
@@ -246,8 +248,6 @@ public class Aether {
     }
 
     public void deploy(Repository repository, Artifact artifact, Artifact pom) throws DeploymentException {
-        RepositorySystemSession session = newSession();
-
         RemoteRepository repoObj = new RemoteRepository(repository.getId(), repository.getType(), repository.getUrl());
         repoObj.setRepositoryManager(repository.isRepositoryManager());
         final String user = repository.getUser();
