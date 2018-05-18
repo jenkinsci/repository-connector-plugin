@@ -316,19 +316,19 @@ public class ArtifactResolver extends Builder implements SimpleBuildStep, Serial
         }
 
         public ListBoxModel doFillReleaseChecksumPolicyItems() {
-            return createSelectItems(CHECKSUM_POLICIES, defaultReleaseChecksumPolicy);
+            return createSelectItems(CHECKSUM_POLICIES);
         }
         
         public ListBoxModel doFillReleaseUpdatePolicyItems() {
-            return createSelectItems(UPDATE_POLICIES, defaultReleaseUpdatePolicy);
+            return createSelectItems(UPDATE_POLICIES);
         }
         
         public ListBoxModel doFillSnapshotChecksumPolicyItems() {
-            return createSelectItems(CHECKSUM_POLICIES, defaultSnapshotChecksumPolicy);
+            return createSelectItems(CHECKSUM_POLICIES);
         }        
           
         public ListBoxModel doFillSnapshotUpdatePolicyItems() {
-            return createSelectItems(UPDATE_POLICIES, defaultSnapshotUpdatePolicy);
+            return createSelectItems(UPDATE_POLICIES);
         }
         
         @Override
@@ -341,15 +341,12 @@ public class ArtifactResolver extends Builder implements SimpleBuildStep, Serial
             return true;
         }
 
-        private ListBoxModel createSelectItems(String[] choices, String dflt) {
+        private ListBoxModel createSelectItems(String[] choices) {
             ListBoxModel items = new ListBoxModel();
-            
-            for (int i = 0; i < choices.length; i++) {
-                items.add(choices[i]);
-                
-                if (dflt.equals(choices[i])) {
-                    items.get(i).selected = true;
-                }                
+
+            for (String choice : choices) {
+                items.add(choice);
+
             }
             
             return items;
