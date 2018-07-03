@@ -38,6 +38,10 @@
 						<f:password name="password" value="${repo.password}" />
 					</f:entry>
 
+					<f:entry title="${%DefaultVersionParameters}" description="${%DefaultVersionParametersDescription}">
+                        <f:checkbox name="defaultVersionParameters" checked="${repo.hasDefaultVersionParameters()}"/>
+                    </f:entry>
+
 					<f:entry>
 						<div align="right">
 							<input type="button" value="${%AddNewRepo}" class="repeatable-add show-if-last" />
