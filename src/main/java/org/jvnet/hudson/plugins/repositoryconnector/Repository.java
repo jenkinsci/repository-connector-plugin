@@ -23,17 +23,17 @@ public class Repository implements Serializable, Comparable {
     final private String user;
     final private String password;
     final private boolean isRepositoryManager;
-    final private boolean hasDefaultVersionParameters;
+    final private boolean removeDefaultVersionParameters;
 
     @DataBoundConstructor
-    public Repository(String id, String type, String url, String user, String password, boolean repositoryManager, boolean defaultVersionParameters) {
+    public Repository(String id, String type, String url, String user, String password, boolean repositoryManager, boolean removeDefaultVersionParameters) {
         this.id = id == null ? "central" : id;
         this.type = type == null ? "default" : type;
         this.url = url;
         this.user = user;
         this.password = password;
         this.isRepositoryManager = repositoryManager;
-        this.hasDefaultVersionParameters = defaultVersionParameters;
+        this.removeDefaultVersionParameters = removeDefaultVersionParameters;
     }
 
     /**
@@ -58,13 +58,13 @@ public class Repository implements Serializable, Comparable {
     }
 
     /**
-     * @return true if default version parameters should be used for this repo
+     * @return true if default version parameters should be removed for this repo
      */
-    public boolean hasDefaultVersionParameters() { return hasDefaultVersionParameters; }
+    public boolean hasRemoveDefaultVersionParameters() { return removeDefaultVersionParameters; }
 
     @Override
     public String toString() {
-        return "[Repository id=" + id + ", type=" + type + ", url=" + url + ", isRepositoryManager=" + isRepositoryManager + ", hasDefaultVersionParameters=" + hasDefaultVersionParameters + "]";
+        return "[Repository id=" + id + ", type=" + type + ", url=" + url + ", isRepositoryManager=" + isRepositoryManager + ", removeDefaultVersionParameters=" + removeDefaultVersionParameters + "]";
     }
 
     /*

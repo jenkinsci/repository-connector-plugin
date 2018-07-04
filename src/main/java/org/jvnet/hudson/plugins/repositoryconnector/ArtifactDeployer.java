@@ -146,7 +146,7 @@ public class ArtifactDeployer extends Notifier implements Serializable {
                     logger.println("INFO: define repo access security...");
                     String tmpuser = TokenMacro.expandAll(build, listener, overwriteSecurity.user);
                     String tmppwd = TokenMacro.expandAll(build, listener, overwriteSecurity.password);
-                    repo = new Repository(repo.getId(), repo.getType(), repo.getUrl(), tmpuser, tmppwd, repo.isRepositoryManager(), repo.hasDefaultVersionParameters());
+                    repo = new Repository(repo.getId(), repo.getType(), repo.getUrl(), tmpuser, tmppwd, repo.isRepositoryManager(), repo.hasRemoveDefaultVersionParameters());
                 }
 
                 aether.install(artifact, pom);

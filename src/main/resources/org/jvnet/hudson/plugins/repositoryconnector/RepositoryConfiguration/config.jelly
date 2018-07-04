@@ -38,8 +38,8 @@
 						<f:password name="password" value="${repo.password}" />
 					</f:entry>
 
-					<f:entry title="${%DefaultVersionParameters}" description="${%DefaultVersionParametersDescription}">
-                        <f:checkbox name="defaultVersionParameters" checked="${repo.hasDefaultVersionParameters()}"/>
+					<f:entry title="${%RemoveDefaultVersionParameters}" description="${%RemoveDefaultVersionParametersDescription}">
+                        <f:checkbox name="removeDefaultVersionParameters" checked="${repo.hasRemoveDefaultVersionParameters()}"/>
                     </f:entry>
 
 					<f:entry>

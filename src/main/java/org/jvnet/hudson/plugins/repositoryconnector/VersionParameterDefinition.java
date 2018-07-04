@@ -78,7 +78,7 @@ public class VersionParameterDefinition extends
                 }
 
                 // Add the default parameters as needed
-                if (!items.isEmpty() && r.hasDefaultVersionParameters()) {
+                if (!items.isEmpty() && !r.hasRemoveDefaultVersionParameters()) {
                     items.add(0, toDefaultVersion(versionsWithLatest.getLatest(), "LATEST"));
                     items.add(0, toDefaultVersion(versionsWithLatest.getRelease(), "RELEASE"));
                 }
