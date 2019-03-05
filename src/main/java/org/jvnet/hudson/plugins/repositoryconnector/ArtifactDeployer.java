@@ -72,14 +72,14 @@ public class ArtifactDeployer extends Notifier implements Serializable {
 
     public String getUserName() {
         if (isOverwriteSecurity()) {
-            return overwriteSecurity.user;
+            return overwriteSecurity.getUser();
         }
         return null;
     }
 
     public String getPassword() {
         if (isOverwriteSecurity()) {
-            return overwriteSecurity.password;
+            return overwriteSecurity.getPassword();
         }
         return null;
     }
@@ -144,8 +144,8 @@ public class ArtifactDeployer extends Notifier implements Serializable {
                 logger.println("INFO: deploy to repository " + repo);
                 if (isOverwriteSecurity()) {
                     logger.println("INFO: define repo access security...");
-                    String tmpuser = TokenMacro.expandAll(build, listener, overwriteSecurity.user);
-                    String tmppwd = TokenMacro.expandAll(build, listener, overwriteSecurity.password);
+                    String tmpuser = TokenMacro.expandAll(build, listener, overwriteSecurity.getUser());
+                    String tmppwd = TokenMacro.expandAll(build, listener, overwriteSecurity.getPassword());
                     repo = new Repository(repo.getId(), repo.getType(), repo.getUrl(), tmpuser, tmppwd, repo.isRepositoryManager());
                 }
 
