@@ -7,11 +7,12 @@ import java.io.Serializable;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import hudson.util.Secret;
+
 /**
  * Represents a repository where artifacts can be resolved from or uploaded to.
  * 
  * @author domi
- * 
  */
 public class Repository implements Serializable, Comparable {
 
@@ -20,8 +21,8 @@ public class Repository implements Serializable, Comparable {
     final private String url;
     final private String type;
     final private String id;
-    final private String user;
-    final private String password;
+    final private Secret user;
+    final private Secret password;
     final private boolean isRepositoryManager;
 
     @DataBoundConstructor
@@ -29,9 +30,12 @@ public class Repository implements Serializable, Comparable {
         this.id = id == null ? "central" : id;
         this.type = type == null ? "default" : type;
         this.url = url;
-        this.user = user;
-        this.password = password;
         this.isRepositoryManager = repositoryManager;
+
+        // this object should really be used here but that requires a config file migration...
+        // see https://wiki.jenkins.io/display/JENKINS/Hint+on+retaining+backward+compatibility
+        this.user = UserPwd.toSecret(user);
+        this.password = UserPwd.toSecret(password);
     }
 
     /**
@@ -62,7 +66,6 @@ public class Repository implements Serializable, Comparable {
 
     /*
      * (non-Javadoc)
-     *
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -76,7 +79,6 @@ public class Repository implements Serializable, Comparable {
 
     /*
      * (non-Javadoc)
-     *
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
@@ -112,14 +114,14 @@ public class Repository implements Serializable, Comparable {
      * @return the user
      */
     public String getUser() {
-        return user;
+        return Secret.toString(user);
     }
 
     /**
      * @return the password
      */
     public String getPassword() {
-        return password;
+        return Secret.toString(password);
     }
 
     /**
@@ -129,7 +131,7 @@ public class Repository implements Serializable, Comparable {
         return isRepositoryManager;
     }
 
-        public int compareTo(Object o) {
-            return id.compareTo(((Repository)o).getId());
-        }
+    public int compareTo(Object o) {
+        return id.compareTo(((Repository) o).getId());
+    }
 }
