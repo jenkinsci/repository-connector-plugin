@@ -31,19 +31,19 @@ public class ArtifactDownloadTest {
         j.jenkins.getInjector().injectMembers(this);
 
         FreeStyleProject p = j.createFreeStyleProject();
-        
+
         Artifact a = new Artifact("commons-logging", "commons-logging", "1.0.4");
         a.setTargetFileName("myJar.jar");
-        
+
         ArtifactResolver resolver = createArtifactResolver(null, a);
         resolver.setTargetDirectory("target");
-        
+
         p.getBuildersList().add(resolver);
         p.getBuildersList().add(new VerifyBuilder("target/myJar.jar"));
 
         j.assertBuildStatus(Result.SUCCESS, p.scheduleBuild2(0, new UserCause()).get());
     }
-    
+
     @Test
     public void downloadWithFixVersionAndTargetName() throws Exception {
         j.jenkins.getInjector().injectMembers(this);
@@ -52,30 +52,30 @@ public class ArtifactDownloadTest {
 
         Artifact a = new Artifact("commons-logging", "commons-logging", "1.0");
         a.setTargetFileName("myJar.jar");
-        
+
         ArtifactResolver resolver = createArtifactResolver(null, a);
-        
+
         p.getBuildersList().add(resolver);
         p.getBuildersList().add(new VerifyBuilder("myJar.jar"));
 
         j.assertBuildStatus(Result.SUCCESS, p.scheduleBuild2(0, new UserCause()).get());
     }
-    
+
     @Test
     public void downloadWithFixVersion() throws Exception {
         j.jenkins.getInjector().injectMembers(this);
 
         FreeStyleProject p = j.createFreeStyleProject();
 
-        Artifact a = new Artifact("commons-logging", "commons-logging", "1.0.1");        
+        Artifact a = new Artifact("commons-logging", "commons-logging", "1.0.1");
         ArtifactResolver resolver = createArtifactResolver(null, a);
-        
+
         p.getBuildersList().add(resolver);
         p.getBuildersList().add(new VerifyBuilder("commons-logging-1.0.1.jar"));
 
         j.assertBuildStatus(Result.SUCCESS, p.scheduleBuild2(0, new UserCause()).get());
-    }    
-    
+    }
+
     @Test
     public void downloadWithVersionAsStringParameter() throws Exception {
         j.jenkins.getInjector().injectMembers(this);
@@ -86,9 +86,9 @@ public class ArtifactDownloadTest {
         a.setClassifier("${MY_CLASSIFIER}");
         a.setExtension("${MY_EXT}");
         a.setTargetFileName("${MY_FILE}");
-        
+
         ArtifactResolver resolver = createArtifactResolver(null, a);
-        
+
         p.getBuildersList().add(resolver);
         p.getBuildersList().add(new VerifyBuilder("aFile.jar"));
 
@@ -103,19 +103,34 @@ public class ArtifactDownloadTest {
      // @formatter:on
 
         j.assertBuildStatus(Result.SUCCESS, p.scheduleBuild2(0, new UserCause()).get());
-    }    
+    }
+
+    @Test
+    public void downloadWithVersionRangeDependency() throws Exception {
+        j.jenkins.getInjector().injectMembers(this);
+
+        FreeStyleProject p = j.createFreeStyleProject();
+
+        Artifact a = new Artifact("org.webjars.npm", "loose-envify", "1.1.0");
+        ArtifactResolver resolver = createArtifactResolver(null, a);
+
+        p.getBuildersList().add(resolver);
+        p.getBuildersList().add(new VerifyBuilder("loose-envify-1.1.0.jar"));
+
+        j.assertBuildStatus(Result.SUCCESS, p.scheduleBuild2(0, new UserCause()).get());
+    }
 
     private ArtifactResolver createArtifactResolver(String targetDir, Artifact... artifacts) {
         ArtifactResolver resolver = new ArtifactResolver(Arrays.asList(artifacts));
         resolver.setTargetDirectory(targetDir);
-        
+
         resolver.setEnableRepoLogging(false);
         resolver.setReleaseUpdatePolicy("always");
         resolver.setSnapshotUpdatePolicy("always");
 
         return resolver;
     }
-    
+
     private static final class VerifyBuilder extends Builder {
 
         private final String expectedFile;
@@ -130,6 +145,6 @@ public class ArtifactDownloadTest {
             Assert.assertTrue("File not available: " + f.getRemote(), f.exists());
             return true;
         }
-    }    
+    }
 
 }

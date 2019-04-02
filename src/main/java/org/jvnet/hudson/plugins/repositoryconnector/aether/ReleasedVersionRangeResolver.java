@@ -129,7 +129,7 @@ public class ReleasedVersionRangeResolver implements VersionRangeResolver, Servi
 			result.addVersion(versionConstraint.getVersion());
 		} else {
 			VersionsAndUpToDates versionsAndUpToDates = getVersions(session, result, request);
-			
+
 			// Compute the latest versions
 			result.setLatest(getLatest(result, versionScheme, versionConstraint, versionsAndUpToDates.latestCandidates));
 			result.setRelease(getLatest(result, versionScheme, versionConstraint, versionsAndUpToDates.releaseCandidates));
@@ -176,13 +176,13 @@ public class ReleasedVersionRangeResolver implements VersionRangeResolver, Servi
 				result.addException(e);
 			}
 		}
-		if (!versions.isEmpty()) {
+		if (!vs.isEmpty()) {
 			Collections.sort(vs);
 			return vs.get(0);
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Internal container to hold versions and resolved latest versions.
 	 */
