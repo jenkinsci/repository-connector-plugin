@@ -32,7 +32,7 @@ public class RepositoryConfiguration extends GlobalConfiguration implements Seri
 
     private static final Map<String, Repository> DEFAULT_REPOS = new HashMap<String, Repository>();
     static {
-        DEFAULT_REPOS.put("central", new Repository("central", "default", "http://repo1.maven.org/maven2", null, null, false));
+        DEFAULT_REPOS.put("central", new Repository("central", "default", "https://repo1.maven.org/maven2", null, null, false));
     }
 
     private final Map<String, Repository> repos = new HashMap<String, Repository>();
