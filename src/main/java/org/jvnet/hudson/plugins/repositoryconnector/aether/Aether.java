@@ -148,7 +148,7 @@ public class Aether {
 			Proxy httpProxy = new Proxy("http", jenkins.proxy.name, jenkins.proxy.port, authenticator);
 			Proxy httpsProxy = new Proxy("https", jenkins.proxy.name, jenkins.proxy.port, authenticator);
 
-			String nonProxySettings = convertHudsonNonProxyToJavaNonProxy(jenkins.proxy.noProxyHost);
+			String nonProxySettings = convertHudsonNonProxyToJavaNonProxy(jenkins.proxy.getNoProxyHost());
 
 			proxySelector.add(httpProxy, nonProxySettings);
 			proxySelector.add(httpsProxy, nonProxySettings);
