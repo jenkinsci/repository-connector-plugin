@@ -17,6 +17,7 @@ public class VersionParameterValue extends StringParameterValue {
     private final String groupid;
     private final String artifactid;
     private final String propertyName;
+    private final boolean useCurrent;
 
     public String getGroupid() {
         return groupid;
@@ -30,12 +31,15 @@ public class VersionParameterValue extends StringParameterValue {
         return propertyName;
     }
 
+    public boolean isUseCurrent() { return useCurrent; }
+
     @DataBoundConstructor
-    public VersionParameterValue(String groupid, String artifactid, String propertyName, String version) {
+    public VersionParameterValue(String groupid, String artifactid, String propertyName, String version, boolean useCurrent) {
         super((propertyName != null && !propertyName.isEmpty()) ? propertyName : groupid + "." + artifactid, version);
         this.groupid = groupid;
         this.artifactid = artifactid;
         this.propertyName = propertyName;
+        this.useCurrent = useCurrent;
     }
 
     @Override
@@ -53,6 +57,8 @@ public class VersionParameterValue extends StringParameterValue {
         sb.append(propertyName);
         sb.append(", version=");
         sb.append(getValue());
+        sb.append(", useCurrent=");
+        sb.append(String.valueOf(useCurrent));
         sb.append(']');
         return sb.toString();
     }

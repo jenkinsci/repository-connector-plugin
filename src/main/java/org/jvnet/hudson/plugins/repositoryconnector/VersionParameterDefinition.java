@@ -31,20 +31,25 @@ public class VersionParameterDefinition extends
         SimpleParameterDefinition {
 
     private static final Logger log = Logger.getLogger(VersionParameterDefinition.class.getName());
+    public static final String CURRENT = "CURRENT";
+    public static final String RELEASE = "RELEASE";
+    public static final String LATEST = "LATEST";
 
     private final String groupid;
     private final String repoid;
     private final String artifactid;
     private final String propertyName;
+    private final boolean useCurrent;
 
     @DataBoundConstructor
     public VersionParameterDefinition(String repoid, String groupid,
-            String artifactid, String propertyName, String description) {
+            String artifactid, String propertyName, String description, boolean useCurrent) {
         super((propertyName != null && !propertyName.isEmpty()) ? propertyName : groupid + "." + artifactid, description);
         this.repoid = repoid;
         this.groupid = groupid;
         this.artifactid = artifactid;
         this.propertyName = propertyName;
+        this.useCurrent = useCurrent;
     }
 
     @Override
@@ -52,7 +57,7 @@ public class VersionParameterDefinition extends
         if (defaultValue instanceof StringParameterValue) {
             // TODO: StringParameterValue value = (StringParameterValue) defaultValue;
             return new VersionParameterDefinition(getRepoid(), "",
-                    "", "", getDescription());
+                    "", "", getDescription(), false);
         }
         return this;
     }
@@ -79,8 +84,12 @@ public class VersionParameterDefinition extends
 
                 // Add the default parameters as needed
                 if (!items.isEmpty()) {
-                    items.add(0, toDefaultVersion(versionsWithLatest.getLatest(), "LATEST"));
-                    items.add(0, toDefaultVersion(versionsWithLatest.getRelease(), "RELEASE"));
+                    items.add(0, toDefaultVersion(versionsWithLatest.getLatest(), LATEST));
+                    items.add(0, toDefaultVersion(versionsWithLatest.getRelease(), RELEASE));
+                    if(useCurrent) {
+                        items.add(0, new VersionLabel(CURRENT, CURRENT));
+                    }
+
                 }
             } catch (VersionRangeResolutionException ex) {
                 log.log(Level.SEVERE, "Could not determine versions", ex);
@@ -123,9 +132,14 @@ public class VersionParameterDefinition extends
         return propertyName;
     }
 
+    @Exported
+    public boolean isUseCurrent() {
+        return useCurrent;
+    }
+
     @Override
     public ParameterValue createValue(StaplerRequest req, JSONObject jo) {
-        return new VersionParameterValue(groupid, artifactid, propertyName, jo.getString("value"));
+        return new VersionParameterValue(groupid, artifactid, propertyName, jo.getString("value"), useCurrent);
     }
 
     /**
@@ -137,7 +151,7 @@ public class VersionParameterDefinition extends
     @Override
     public ParameterValue createValue(String input) {
     	final String[] tokens = input.split(":");
-        return new VersionParameterValue(tokens[0], tokens[1], tokens[2], tokens[3]);
+        return new VersionParameterValue(tokens[0], tokens[1], tokens[2], tokens[3],Boolean.parseBoolean(tokens[4]));
     }
 
     @Override
@@ -286,6 +300,8 @@ public class VersionParameterDefinition extends
         public String getDisplayName() {
             return Messages.DisplayName();
         }
+
+
     }
 
     @Override
@@ -303,6 +319,8 @@ public class VersionParameterDefinition extends
         sb.append(repoid);
         sb.append(", artifactid=");
         sb.append(artifactid);
+        sb.append(", toggleIgnore=");
+        sb.append(useCurrent);
         sb.append(']');
         return sb.toString();
     }

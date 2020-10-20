@@ -21,4 +21,8 @@
     <f:entry title="${%Description}">
         <f:textarea field="description" value="${instance.description}" />
     </f:entry>
+    <f:entry title="${%useCurrent}" field="useCurrent">
+      <f:checkbox/>
+    </f:entry>
+
 </j:jelly>
