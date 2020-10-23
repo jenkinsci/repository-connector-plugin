@@ -1,0 +1,39 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson"
+  xmlns:f="/lib/form" xmlns:c="/lib/credentials">
+
+  <f:block>
+    <f:section title="${%Repository}">
+      <f:entry field="id" help="/plugin/repository-connector/help-repositoryId.html" title="${%RepoId}">
+        <f:textbox />
+      </f:entry>
+
+      <f:entry field="url" help="/plugin/repository-connector/help-endpoint.html" title="${%Url}">
+        <f:textbox />
+      </f:entry>
+
+      <f:entry field="credentialsId" help="/plugin/repository-connector/help-credentialsId.html" title="${%Credentials}">
+        <c:select />
+      </f:entry>
+
+      <f:advanced>
+        <f:optionalBlock checked="true" field="enableReleaseRepository" help="help-enableReleases.html" inline="true"
+          title="${%EnableReleases}">
+          <f:property field="releaseRepository" />
+        </f:optionalBlock>
+
+        <f:optionalBlock checked="true" field="enableSnapshotRepository" help="help-enableSnapshots.html" inline="true"
+          title="${%EnableSnapshots}">
+          <f:property field="snapshotRepository" />
+        </f:optionalBlock>
+      </f:advanced>
+
+      <f:entry>
+        <div align="right">
+          <f:repeatableDeleteButton />
+        </div>
+      </f:entry>
+
+    </f:section>
+  </f:block>
+</j:jelly>

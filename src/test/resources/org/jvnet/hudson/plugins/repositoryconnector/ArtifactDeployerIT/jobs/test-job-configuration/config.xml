@@ -1,0 +1,36 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders/>
+  <publishers>
+    <org.jvnet.hudson.plugins.repositoryconnector.ArtifactDeployer plugin="repository-connector@2.0.0-SNAPSHOT">
+      <artifacts>
+        <org.jvnet.hudson.plugins.repositoryconnector.Artifact>
+          <artifactId>junit-jupiter</artifactId>
+          <deployToLocal>true</deployToLocal>
+          <deployToRemote>true</deployToRemote>
+          <failOnError>true</failOnError>
+          <groupId>org.junit.jupiter</groupId>
+          <pomFile></pomFile>
+          <targetFileName>target/junit-jupiter.jar</targetFileName>
+          <version>5.7.0</version>
+        </org.jvnet.hudson.plugins.repositoryconnector.Artifact>
+      </artifacts>
+      <credentialsId>user-pass</credentialsId>
+      <enableRepositoryLogging>true</enableRepositoryLogging>
+      <enableTransferLogging>false</enableTransferLogging>
+      <repositoryId>central</repositoryId>
+    </org.jvnet.hudson.plugins.repositoryconnector.ArtifactDeployer>
+  </publishers>
+  <buildWrappers/>
+</project>

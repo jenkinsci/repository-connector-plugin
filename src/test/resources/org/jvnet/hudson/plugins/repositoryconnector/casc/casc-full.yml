@@ -1,0 +1,20 @@
+# this does not represent a 'valid' configuration, just one that can be tested for all values
+unclassified:
+  repository-connector:
+    localRepository: /tmp
+    repositories:
+    - credentialsId: user-pass
+      enableSnapshotRepository: false
+      enableReleaseRepository: false
+      id: central
+      releaseRepository:
+        checksum: fail
+        credentialsId: release-write
+        update: daily
+        url: http://domain.com/content/repositories/releases
+      snapshotRepository:
+        checksum: warn
+        credentialsId: snapshot-write
+        update: daily
+        url: http://domain.com/content/repositories/snapshots
+      url: https://repo1.maven.org/maven2

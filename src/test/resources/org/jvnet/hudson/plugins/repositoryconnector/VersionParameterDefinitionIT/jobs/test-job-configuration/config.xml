@@ -1,0 +1,33 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <org.jvnet.hudson.plugins.repositoryconnector.VersionParameterDefinition plugin="repository-connector@2.0.0-SNAPSHOT">
+          <name>JUNIT_VERSION</name>
+          <artifactId>junit-jupiter</artifactId>
+          <groupId>org.junit.jupiter</groupId>
+          <includeReleases>true</includeReleases>
+          <includeSnapshots>true</includeSnapshots>
+          <limit>5</limit>
+          <oldestFirst>false</oldestFirst>
+          <repositoryId>central</repositoryId>
+          <useLatest>true</useLatest>
+          <useRelease>true</useRelease>
+        </org.jvnet.hudson.plugins.repositoryconnector.VersionParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders/>
+  <publishers/>
+  <buildWrappers/>
+</project>

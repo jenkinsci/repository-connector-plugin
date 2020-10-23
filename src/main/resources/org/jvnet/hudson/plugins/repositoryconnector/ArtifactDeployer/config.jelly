@@ -1,81 +1,27 @@
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
-	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson"
+  xmlns:f="/lib/form">
 
-	<f:entry title="${%EnableRepositoryLogging}" description="${%EnableRepositoryLoggingDescription}">
-		<f:checkbox name="enableRepoLogging" checked="${instance.enableRepoLogging()}" />
-	</f:entry>
+  <j:set var="artifactDeployer" value="true" />
 
-	<f:entry title="${%Repository}">
-		<select class="setting-input" name="repoId"
-			description="${%RepositoryDescription}">
-			<j:forEach var="repo" items="${instance.repos}">
-				<f:option selected="${instance.repoId==repo.id}" value="${repo.id}">${repo.id}
-					- ${repo.url}</f:option>
-			</j:forEach>
-		</select>
-	</f:entry>
+  <j:if test="${descriptor.hasMultipleRepositories()}">
+    <f:entry help="/plugin/repository-connector/help-repositorySelector.html" field="repositoryId" title="${%Repository}">
+      <f:select />
+    </f:entry>
+  </j:if>
 
-	<f:entry title="${%SnapshotRepository}">
-		<select class="setting-input" name="snapshotRepoId"
-			description="${%SnapshotRepositoryDescription}">
-			<j:forEach var="repo" items="${instance.repos}">
-				<f:option selected="${instance.snapshotRepoId==repo.id}"
-					value="${repo.id}">${repo.id} - ${repo.url}</f:option>
-			</j:forEach>
-		</select>
-	</f:entry>
+  <f:entry help="/plugin/repository-connector/help-repositoryLogging.html" field="enableRepositoryLogging"
+    title="${%EnableRepositoryLogging}">
+    <f:checkbox default="true" />
+  </f:entry>
 
+  <f:entry help="/plugin/repository-connector/help-transferLogging.html" field="enableTransferLogging"
+    title="${%EnableTransferLogging}">
+    <f:checkbox />
+  </f:entry>
 
-	<f:optionalBlock name="overwriteSecurity" title="${%OverwritePermissions}"
-		checked="${instance.isOverwriteSecurity()}" help="/plugin/repository-connector/help-permissions.html">
-		<f:entry title="${%User}">
-			<f:textbox name="user" value="${instance.getUserName()}" />
-		</f:entry>
-
-		<f:entry title="${%Password}">
-			<f:password name="password" value="${instance.getPassword()}" />
-		</f:entry>
-	</f:optionalBlock>
-
-	<f:entry title="${Artifacts}">
-		<f:repeatable var="artifact" items="${instance.artifacts}"
-			name="artifacts" noAddButton="true" minimum="1">
-			<table width="100%">
-
-				<f:entry title="${%GroupId}">
-					<f:textbox name="groupId" value="${artifact.groupId}" />
-				</f:entry>
-
-				<f:entry title="${%ArtifactId}">
-					<f:textbox name="artifactId" value="${artifact.artifactId}" />
-				</f:entry>
-
-				<f:entry title="${%Version}">
-					<f:textbox name="version" value="${artifact.version}" />
-				</f:entry>
-
-				<f:entry title="${%Classifier}">
-					<f:textbox name="classifier" value="${artifact.classifier}" />
-				</f:entry>
-
-				<f:entry title="${%Packaging}">
-					<f:textbox name="extension" value="${artifact.extension}" />
-				</f:entry>
-
-				<f:entry title="${%File}" description="${%FileDescription}">
-					<f:textbox name="targetFileName" value="${artifact.targetFileName}" />
-				</f:entry>
-
-				<f:entry>
-					<div align="right">
-						<input type="button" value="${%AddArtifact}" class="repeatable-add show-if-last" />
-						<input type="button" value="${%Delete}"
-							class="repeatable-delete show-if-not-only" style="margin-left: 1em;" />
-					</div>
-				</f:entry>
-			</table>
-		</f:repeatable>
-	</f:entry>
-
+  <f:entry title="${%Artifacts}">
+    <f:repeatableProperty add="${%AddArtifact}" field="artifacts" minimum="1" />
+  </f:entry>
 
 </j:jelly>

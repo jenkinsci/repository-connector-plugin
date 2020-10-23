@@ -1,74 +1,28 @@
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
-	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson"
+  xmlns:f="/lib/form">
 
-	<f:entry title="${%FailOnError}" description="${%FailOnErrorDescription}" field="failOnError">
-		<f:checkbox default="${descriptor.defaultFailOnError}"/>
-	</f:entry>
-
-	<f:entry title="${%EnableRepositoryLogging}" description="${%EnableRepositoryLoggingDescription}" field="enableRepoLogging">
-		<f:checkbox default="${descriptor.defaultEnableRepoLogging}"/>
-	</f:entry>
-
-	<f:entry title="${%TargetDirectory}" field="targetDirectory">
-		<f:textbox />
-	</f:entry>
-
-	<f:entry title="${%ReleaseUpdatePolicy}" field="releaseUpdatePolicy">
-		<f:select />
-	</f:entry>
-	
-	<f:entry title="${%ReleaseChecksumPolicy}" field="releaseChecksumPolicy">
-        <f:select />
+  <j:if test="${descriptor.hasMultipleRepositories()}">
+    <f:entry help="/plugin/repository-connector/help-repositorySelector.html" field="repositoryId" title="${%Repository}">
+      <f:select />
     </f:entry>
+  </j:if>
 
-	<f:entry title="${%SnapshotUpdatePolicy}" field="snapshotUpdatePolicy">
-        <f:select />
-	</f:entry>
+  <f:entry help="/plugin/repository-connector/help-targetDirectory.html" field="targetDirectory" title="${%TargetDirectory}">
+    <f:textbox />
+  </f:entry>
 
-    <f:entry title="${%SnapshotChecksumPolicy}" field="snapshotChecksumPolicy">
-        <f:select />
-    </f:entry>	
+  <f:entry help="/plugin/repository-connector/help-repositoryLogging.html" field="enableRepositoryLogging"
+    title="${%EnableRepositoryLogging}">
+    <f:checkbox default="true" />
+  </f:entry>
 
-	<f:entry title="${%Artifacts}">
-		<f:repeatable var="artifact" items="${instance.artifacts}"
-			name="artifacts" noAddButton="true" minimum="1">
-			<table width="100%">
+  <f:entry help="/plugin/repository-connector/help-transferLogging.html" field="enableTransferLogging"
+    title="${%EnableTransferLogging}">
+    <f:checkbox />
+  </f:entry>
 
-				<f:entry title="${%GroupId}">
-					<f:textbox name="groupId" value="${artifact.groupId}" />
-				</f:entry>
-
-				<f:entry title="${%ArtifactId}">
-					<f:textbox name="artifactId" value="${artifact.artifactId}" />
-				</f:entry>
-
-				<f:entry title="${%Version}">
-					<f:textbox name="version" value="${artifact.version}" />
-				</f:entry>
-
-				<f:entry title="${%Classifier}">
-					<f:textbox name="classifier" value="${artifact.classifier}" />
-				</f:entry>
-
-				<f:entry title="${%Extension}">
-					<f:textbox name="extension" value="${artifact.extension}"
-						default="jar" />
-				</f:entry>
-
-				<f:entry title="${%TargetFilename}"
-					description="${%TargetFilenameDescription}">
-					<f:textbox name="targetFileName" value="${artifact.targetFileName}" />
-				</f:entry>
-
-				<f:entry>
-					<div align="right">
-						<input type="button" value="${%AddArtifact}" class="repeatable-add show-if-last" />
-						<input type="button" value="${%Delete}"
-							class="repeatable-delete show-if-not-only" style="margin-left: 1em;" />
-					</div>
-				</f:entry>
-			</table>
-		</f:repeatable>
-	</f:entry>
+  <f:entry help="/plugin/repository-connector/help-resolvedArtifacts.html" title="${%Artifacts}">
+    <f:repeatableProperty add="${%AddArtifact}" field="artifacts" minimum="1" />
+  </f:entry>
 
 </j:jelly>

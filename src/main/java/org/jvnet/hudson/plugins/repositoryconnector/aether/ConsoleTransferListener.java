@@ -22,28 +22,42 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sonatype.aether.transfer.TransferCancelledException;
-import org.sonatype.aether.transfer.TransferEvent;
-import org.sonatype.aether.transfer.TransferListener;
-import org.sonatype.aether.transfer.TransferResource;
+import org.eclipse.aether.transfer.TransferCancelledException;
+import org.eclipse.aether.transfer.TransferEvent;
+import org.eclipse.aether.transfer.TransferListener;
+import org.eclipse.aether.transfer.TransferResource;
 
 public class ConsoleTransferListener implements TransferListener {
     private static final Log LOG = LogFactory.getLog(ConsoleTransferListener.class);
-    private PrintStream out;
-
-    private Map<TransferResource, Long> downloads = new ConcurrentHashMap<TransferResource, Long>();
+    private Map<TransferResource, Long> downloads = new ConcurrentHashMap<>();
 
     private int lastLength;
+
+    private PrintStream out;
 
     public ConsoleTransferListener(PrintStream out) {
         this.out = (out != null) ? out : System.out;
     }
 
+    @Override
+    public void transferCorrupted(TransferEvent event) {
+        event.getException().printStackTrace(out);
+    }
+
+    @Override
+    public void transferFailed(TransferEvent event) {
+        transferCompleted(event);
+        LOG.debug("transferFailed", event.getException());
+        out.println(event.getException().getMessage());
+    }
+
+    @Override
     public void transferInitiated(TransferEvent event) {
         String message = event.getRequestType() == TransferEvent.RequestType.PUT ? "Uploading" : "Downloading";
         out.println(message + ": " + event.getResource().getRepositoryUrl() + event.getResource().getResourceName());
     }
 
+    @Override
     public void transferProgressed(TransferEvent event) {
         TransferResource resource = event.getResource();
         downloads.put(resource, Long.valueOf(event.getTransferredBytes()));
@@ -63,6 +77,36 @@ public class ConsoleTransferListener implements TransferListener {
         buffer.append('\r');
 
         out.print(buffer);
+    }
+   
+    @Override
+    public void transferStarted(TransferEvent arg0) throws TransferCancelledException {
+    }
+
+    @Override
+    public void transferSucceeded(TransferEvent event) {
+        transferCompleted(event);
+
+        TransferResource resource = event.getResource();
+        long contentLength = event.getTransferredBytes();
+        if (contentLength >= 0) {
+            String type = (event.getRequestType() == TransferEvent.RequestType.PUT ? "Uploaded" : "Downloaded");
+            String len = contentLength >= 1024 ? toKB(contentLength) + " KB" : contentLength + " B";
+
+            String throughput = "";
+            long duration = System.currentTimeMillis() - resource.getTransferStartTime();
+            if (duration > 0) {
+                DecimalFormat format = new DecimalFormat("0.0", new DecimalFormatSymbols(Locale.ENGLISH));
+                double kbPerSec = (contentLength / 1024.0) / (duration / 1000.0);
+                throughput = " at " + format.format(kbPerSec) + " KB/sec";
+            }
+
+            out.println(type + ": " + resource.getRepositoryUrl() + resource.getResourceName() + " (" + len + throughput + ")");
+        }
+    }
+
+    protected long toKB(long bytes) {
+        return (bytes + 1023) / 1024;
     }
 
     private String getStatus(long complete, long total) {
@@ -86,33 +130,6 @@ public class ConsoleTransferListener implements TransferListener {
         }
     }
 
-    public void transferSucceeded(TransferEvent event) {
-        transferCompleted(event);
-
-        TransferResource resource = event.getResource();
-        long contentLength = event.getTransferredBytes();
-        if (contentLength >= 0) {
-            String type = (event.getRequestType() == TransferEvent.RequestType.PUT ? "Uploaded" : "Downloaded");
-            String len = contentLength >= 1024 ? toKB(contentLength) + " KB" : contentLength + " B";
-
-            String throughput = "";
-            long duration = System.currentTimeMillis() - resource.getTransferStartTime();
-            if (duration > 0) {
-                DecimalFormat format = new DecimalFormat("0.0", new DecimalFormatSymbols(Locale.ENGLISH));
-                double kbPerSec = (contentLength / 1024.0) / (duration / 1000.0);
-                throughput = " at " + format.format(kbPerSec) + " KB/sec";
-            }
-
-            out.println(type + ": " + resource.getRepositoryUrl() + resource.getResourceName() + " (" + len + throughput + ")");
-        }
-    }
-
-    public void transferFailed(TransferEvent event) {
-        transferCompleted(event);
-        LOG.debug("transferFailed", event.getException());
-        out.println(event.getException().getClass() + ": " + event.getException().getMessage());
-    }
-
     private void transferCompleted(TransferEvent event) {
         downloads.remove(event.getResource());
 
@@ -121,19 +138,4 @@ public class ConsoleTransferListener implements TransferListener {
         buffer.append('\r');
         out.print(buffer);
     }
-
-    public void transferCorrupted(TransferEvent event) {
-        event.getException().printStackTrace(out);
-    }
-
-    protected long toKB(long bytes) {
-        return (bytes + 1023) / 1024;
-    }
-
-    /**
-     * @see org.sonatype.aether.transfer.TransferListener#transferStarted(org.sonatype.aether.transfer.TransferEvent)
-     */
-    public void transferStarted(TransferEvent arg0) throws TransferCancelledException {
-    }
-
 }
