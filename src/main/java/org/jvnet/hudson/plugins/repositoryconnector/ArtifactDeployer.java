@@ -1,242 +1,220 @@
 package org.jvnet.hudson.plugins.repositoryconnector;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import net.sf.json.JSONObject;
+
+import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.tokenmacro.MacroEvaluationException;
+import org.jvnet.hudson.plugins.repositoryconnector.aether.Aether;
+import org.jvnet.hudson.plugins.repositoryconnector.aether.AetherBuilder;
+import org.jvnet.hudson.plugins.repositoryconnector.aether.AetherException;
+import org.jvnet.hudson.plugins.repositoryconnector.aether.AetherBuilderFactory;
+import org.jvnet.hudson.plugins.repositoryconnector.util.FilePathUtils;
+import org.jvnet.hudson.plugins.repositoryconnector.util.PomGenerator;
+import org.jvnet.hudson.plugins.repositoryconnector.util.RepositoryListBox;
+import org.jvnet.hudson.plugins.repositoryconnector.util.TokenMacroExpander;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.StaplerRequest;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.BuildListener;
-import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import net.sf.json.JSONObject;
-
-import org.apache.commons.io.FileUtils;
-import org.jenkinsci.plugins.tokenmacro.TokenMacro;
-import org.jvnet.hudson.plugins.repositoryconnector.aether.Aether;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
-import org.sonatype.aether.deployment.DeploymentException;
-import org.sonatype.aether.util.artifact.DefaultArtifact;
-import org.sonatype.aether.util.artifact.SubArtifact;
+import hudson.util.ListBoxModel;
+import jenkins.tasks.SimpleBuildStep;
 
 /**
  * This builder allows to resolve artifacts from a repository and copy it to any location.
  * 
  * @author domi
  */
-public class ArtifactDeployer extends Notifier implements Serializable {
+public class ArtifactDeployer extends Notifier implements SimpleBuildStep {
 
-    private static final long serialVersionUID = 1L;
+    private transient final AetherBuilderFactory aetherFactory;
 
-    static Logger log = Logger.getLogger(ArtifactDeployer.class.getName());
+    private final List<Artifact> artifacts;
 
-    public final UserPwd overwriteSecurity;
-    public boolean enableRepoLogging = true;
-    public final String repoId;
-    public final String snapshotRepoId;
-    public List<Artifact> artifacts;
+    private boolean enableRepositoryLogging;
+
+    private boolean enableTransferLogging;
+
+    private String repositoryId;
 
     @DataBoundConstructor
-    public ArtifactDeployer(List<Artifact> artifacts, String repoId, String snapshotRepoId, UserPwd overwriteSecurity, boolean enableRepoLogging) {
-        this.enableRepoLogging = enableRepoLogging;
-        this.artifacts = artifacts != null ? artifacts : new ArrayList<Artifact>();
-        this.repoId = repoId;
-        this.snapshotRepoId = snapshotRepoId;
-        this.overwriteSecurity = overwriteSecurity;
-        System.out.println(this.overwriteSecurity);
+    public ArtifactDeployer(List<Artifact> artifacts) {
+        this(artifacts, null);
     }
 
-    public boolean enableRepoLogging() {
-        return enableRepoLogging;
+    // visible for integration testing
+    ArtifactDeployer(List<Artifact> artifacts, AetherBuilderFactory aetherFactory) {
+        this.artifacts = Optional.ofNullable(artifacts)
+                .orElse(Collections.emptyList());
+
+        this.aetherFactory = aetherFactory;
     }
 
-    public boolean isOverwriteSecurity() {
-        return overwriteSecurity != null;
+    public List<Artifact> getArtifacts() {
+        return artifacts;
     }
 
-    public String getUserName() {
-        if (isOverwriteSecurity()) {
-            return overwriteSecurity.getUser();
-        }
-        return null;
+    public String getRepositoryId() {
+        return repositoryId;
     }
 
-    public String getPassword() {
-        if (isOverwriteSecurity()) {
-            return overwriteSecurity.getPassword();
-        }
-        return null;
-    }
-
-    public Collection<Repository> getRepos() {
-        return RepositoryConfiguration.get().getRepos();
-    }
-
-    private Repository getRepoById(String id) {
-        return RepositoryConfiguration.get().getRepositoryMap().get(id);
-    }
-
-    /*
-     * @see hudson.tasks.BuildStep#getRequiredMonitorService()
-     */
+    @Override
     public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
     }
 
+    public boolean isEnableRepositoryLogging() {
+        return enableRepositoryLogging;
+    }
+
+    public boolean isEnableTransferLogging() {
+        return enableTransferLogging;
+    }
+
     @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
+    public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener)
+        throws InterruptedException, IOException {
 
-        final PrintStream logger = listener.getLogger();
-
-        Aether aether = new Aether(new File(RepositoryConfiguration.get().getLocalRepository()), logger, enableRepoLogging);
+        TokenMacroExpander tokenExpander = createExpander(run, workspace, listener);
+        Aether aether = createAether(run, listener.getLogger());
 
         try {
-            for (Artifact a : artifacts) {
+            for (Artifact artifact : artifacts) {
+                Artifact expanded = tokenExpander.expand(artifact);
 
-                final String version = TokenMacro.expandAll(build, listener, a.getVersion());
-                final String classifier = TokenMacro.expandAll(build, listener, a.getClassifier());
-                final String artifactId = TokenMacro.expandAll(build, listener, a.getArtifactId());
-                final String groupId = TokenMacro.expandAll(build, listener, a.getGroupId());
-                final String packaging = TokenMacro.expandAll(build, listener, a.getExtension());
-                final String targetFileName = TokenMacro.expandAll(build, listener, a.getTargetFileName());
+                File pom = copyPomToLocal(workspace, expanded);
+                File local = copyArtifactToLocal(workspace, expanded);
 
-                Artifact aTmp = new Artifact(groupId, artifactId, version);
-                aTmp.setClassifier(classifier);
-                aTmp.setExtension(packaging);
-                aTmp.setTargetFileName(targetFileName);
-                
-                String aTmpFileName = aTmp.getTargetFileName();
-                FilePath source = new FilePath(build.getWorkspace(), aTmpFileName);
-                String f = new File(aTmpFileName).getName();
-                int dotPos = f.lastIndexOf(".");
-                String extension = f.substring(dotPos + 1);
-                final File targetFile = File.createTempFile(f, "." + extension);
-                FilePath target = new FilePath(targetFile);
-
-                logger.println("INFO: copy source " + source.toURI() + " to master " + target.toURI());
-                source.copyTo(target);
-
-                org.sonatype.aether.artifact.Artifact artifact = new DefaultArtifact(groupId, artifactId, classifier, extension, version);
-                logger.println("INFO: deploy artifact " + aTmp);
-                artifact = artifact.setFile(targetFile);
-                org.sonatype.aether.artifact.Artifact pom = new SubArtifact(artifact, "", "pom");
-                final File tmpPom = getTempPom(aTmp);
-                pom = pom.setFile(tmpPom);
-
-                final String tmpRepoId = version.contains("SNAPSHOT") ? snapshotRepoId : repoId;
-                Repository repo = getRepoById(tmpRepoId);
-                logger.println("INFO: deploy to repository " + repo);
-                if (isOverwriteSecurity()) {
-                    logger.println("INFO: define repo access security...");
-                    String tmpuser = TokenMacro.expandAll(build, listener, overwriteSecurity.getUser());
-                    String tmppwd = TokenMacro.expandAll(build, listener, overwriteSecurity.getPassword());
-                    repo = new Repository(repo.getId(), repo.getType(), repo.getUrl(), tmpuser, tmppwd, repo.isRepositoryManager());
-                }
-
-                aether.install(artifact, pom);
-                aether.deploy(repo, artifact, pom);
-
-                // clean the resources
-                targetFile.delete();
-                tmpPom.delete();
+                deploy(expanded, local, pom, aether, listener.getLogger());
             }
-        } catch (DeploymentException e) {
-            logger.println("ERROR: possible causes: 1. in case of a SNAPSHOT deployment: does your remote repository allow SNAPSHOT deployments?, 2. in case of a release dpeloyment: is this version of the artifact already deployed then does your repository allow updating artifacts?");
-            return logError("DeploymentException: ", logger, e);
-        } catch (IOException e) {
-            return logError("IOException: ", logger, e);
-        } catch (InterruptedException e) {
-            return logError("InterruptedException: ", logger, e);
-        } catch (Exception e) {
-            return logError("Exception: ", logger, e);
+        } catch (MacroEvaluationException e) {
+            throw new AbortException("Maven artifact deployment failed: " + e.getMessage());
         }
-        return true;
     }
 
-    private boolean logError(String msg, final PrintStream logger, Exception e) {
-        log.log(Level.SEVERE, msg, e);
-        logger.println(msg);
-        e.printStackTrace(logger);
-        return false;
+    @DataBoundSetter
+    public void setEnableRepositoryLogging(boolean enableRepositoryLogging) {
+        this.enableRepositoryLogging = enableRepositoryLogging;
     }
 
-    public DescriptorImpl getDescriptor() {
-        return DESCRIPTOR;
+    @DataBoundSetter
+    public void setEnableTransferLogging(boolean enableTransferLogging) {
+        this.enableTransferLogging = enableTransferLogging;
+    }
+
+    @DataBoundSetter
+    public void setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
+    }
+
+    // visible for unit testing
+    Aether createAether(Run<?, ?> context, PrintStream console) {
+        AetherBuilder builder = Optional.ofNullable(aetherFactory)
+                .orElse(RepositoryConfiguration.createAetherFactory())
+                .createAetherBuilder(context);
+
+        if (enableRepositoryLogging) {
+            builder.setRepositoryLogger(console);
+        }
+
+        if (enableTransferLogging) {
+            builder.setTransferLogger(console);
+        }
+
+        return builder.build();
+    }
+
+    // visible for unit testing
+    TokenMacroExpander createExpander(Run<?, ?> run, FilePath workspace, TaskListener listener) {
+        return new TokenMacroExpander(run, listener, workspace);
+    }
+
+    private File copyArtifactToLocal(FilePath workspace, Artifact artifact) throws IOException, InterruptedException {
+        FilePath toUpload = new FilePath(workspace, artifact.getTargetFileName());
+        return FilePathUtils.copyToLocal(toUpload);
+    }
+
+    private File copyPomToLocal(FilePath workspace, Artifact artifact) throws IOException, InterruptedException {
+        String pomFile = artifact.getPomFile();
+        if (pomFile == null) {
+            return PomGenerator.generate(artifact);
+        }
+
+        return FilePathUtils.copyToLocal(new FilePath(workspace, pomFile));
+    }
+
+    @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE", justification = "delete")
+    private void deploy(Artifact artifact, File local, File pom, Aether aether, PrintStream console) throws AetherException {
+        // this is already a copy from the expansion, so safe...
+        artifact.setPomFile(pom.getAbsolutePath());
+        artifact.setTargetFileName(local.getAbsolutePath());
+
+        try {
+            if (artifact.isDeployToLocal()) {
+                aether.install(artifact);
+            }
+
+            if (artifact.isDeployToRemote()) {
+                aether.deploy(repositoryId, artifact);
+            }
+        } catch (AetherException e) {
+            if (artifact.isFailOnError()) {
+                throw e;
+            }
+
+            console.println(String.format("Warning: failed to deploy %s - %s", artifact, e.getMessage()));
+        }
+        finally {
+            // there are cases this misses, but they will be cleaned up by the os or on shutdown
+            pom.delete();
+            local.delete();
+        }
     }
 
     @Extension
-    public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
+    @Symbol("artifactDeployer")
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
-        public DescriptorImpl() {
-        }
-
-        public boolean isApplicable(Class<? extends AbstractProject> aClass) {
-            // TODO: This disables the extension => change to true
-            return false;
-        }
-
-        public String getDisplayName() {
-            return Messages.ArtifactDeployer();
-        }
 
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
             return true;
         }
-    }
 
-    private File getTempPom(Artifact artifact) {
-        File tmpPom = null;
-        try {
-            final String preparedPom = this.preparedPom(artifact);
-            tmpPom = File.createTempFile("pom" + artifact.getArtifactId(), ".xml");
-            FileUtils.writeStringToFile(tmpPom, preparedPom);
-        } catch (IOException e) {
-            log.log(Level.SEVERE, "not able to create temporal pom: " + e.getMessage());
+        public ListBoxModel doFillRepositoryIdItems() {
+            return new RepositoryListBox(RepositoryConfiguration.get().getRepositories());
         }
-        return tmpPom;
-    }
 
-    private String preparedPom(Artifact artifact) {
-        String pomContent = null;
-        try {
-            final InputStream stream = this.getClass().getResourceAsStream("/org/jvnet/hudson/plugins/repositoryconnector/ArtifactDeployer/pom.tmpl");
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream));
-            StringBuilder stringBuilder = new StringBuilder();
-            String line = null;
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuilder.append(line);
-            }
-            bufferedReader.close();
-            pomContent = stringBuilder.toString();
-            pomContent = pomContent.replace("ARTIFACTID", artifact.getArtifactId());
-            pomContent = pomContent.replace("GROUPID", artifact.getGroupId());
-            pomContent = pomContent.replace("VERSION", artifact.getVersion());
-            // FIXME how to handle packaging vs extension?
-            pomContent = pomContent.replace("PACKAGING", artifact.getExtension());
+        @Override
+        public String getDisplayName() {
+            return Messages.ArtifactDeployer();
+        }
 
-        } catch (Exception e) {
-            log.log(Level.SEVERE, "not able to create temporal pom: " + e.getMessage());
+        public boolean hasMultipleRepositories() {
+            return RepositoryConfiguration.get().hasMultipleRepositories();
         }
-        if (log.isLoggable(Level.FINE)) {
-            log.log(Level.FINE, "used POM: " + pomContent);
+
+        @Override
+        @SuppressWarnings("rawtypes")
+        public boolean isApplicable(Class<? extends AbstractProject> aClass) {
+            return true;
         }
-        return pomContent;
     }
 }

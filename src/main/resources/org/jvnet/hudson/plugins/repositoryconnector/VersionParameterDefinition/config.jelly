@@ -1,24 +1,59 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
-         xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"
-         xmlns:i="jelly:fmt" xmlns:p="/lib/hudson/project">
-    <f:entry title="${%Repository}">
-        <select class="setting-input" name="repoid">
-            <j:forEach var="s" items="${descriptor.repos}">
-                <f:option selected="${s.id==instance.repoid}" value="${s.id}">${s.id}</f:option>
-            </j:forEach>
-        </select>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson"
+  xmlns:f="/lib/form" xmlns:i="jelly:fmt" xmlns:p="/lib/hudson/project">
+  <f:block>
+
+    <f:entry field="name" help="/help/parameter/name.html" title="${%PropertyName}">
+      <f:textbox />
     </f:entry>
-    <f:entry title="${%PropertyName}">
-        <f:textbox field="propertyName" value="${instance.propertyName}" />
+
+    <f:entry field="description" help="/help/parameter/description.html" title="${%Description}">
+      <f:textarea />
     </f:entry>
-    <f:entry title="${%GroupId}">
-        <f:textbox field="groupid" value="${instance.groupid}" />
+
+    <j:if test="${descriptor.hasMultipleRepositories()}">
+      <f:entry help="/plugin/repository-connector/help-repositorySelector.html" field="repositoryId" title="${%Repository}">
+        <f:select />
+      </f:entry>
+    </j:if>
+
+    <f:entry field="groupId" help="/plugin/repository-connector/help-groupId.html" title="${%GroupId}">
+      <f:textbox />
     </f:entry>
-    <f:entry title="${%ArtifactId}">
-        <f:textbox field="artifactid" value="${instance.artifactid}" />
+
+    <f:entry field="artifactId" help="/plugin/repository-connector/help-artifactId.html" title="${%ArtifactId}">
+      <f:textbox />
     </f:entry>
-    <f:entry title="${%Description}">
-        <f:textarea field="description" value="${instance.description}" />
-    </f:entry>
+
+    <f:advanced>
+      <f:optionalBlock field="oldestFirst" help="/plugin/repository-connector/help-oldestFirst.html" inline="true"
+        negative="true" title="${%OlestFirst}">
+        
+        <f:entry field="limit" help="/plugin/repository-connector/help-limit.html" title="${%Limit}">
+          <f:textbox />
+        </f:entry>
+      
+      </f:optionalBlock>
+
+      <f:entry field="includeReleases" help="/plugin/repository-connector/help-includeReleases.html" title="${%IncludeReleases}">
+        <f:checkbox default="true" />
+      </f:entry>
+
+      <f:entry field="includeSnapshots" help="/plugin/repository-connector/help-includeSnapshots.html" title="${%IncludeSnapshots}">
+        <f:checkbox default="true" />
+      </f:entry>
+
+      <f:entry field="useRelease" help="/plugin/repository-connector/help-useRelease.html" title="${%UseRelease}">
+        <f:checkbox default="true" />
+      </f:entry>
+
+      <f:entry field="useLatest" help="/plugin/repository-connector/help-useLatest.html" title="${%UseLatest}">
+        <f:checkbox default="true" />
+      </f:entry>
+    </f:advanced>
+
+    <f:validateButton method="validateCoordinates" title="${%Valildate}"
+      with="repositoryId,groupId,artifactId,includeReleases,includeSnapshots" />
+  </f:block>
+
 </j:jelly>

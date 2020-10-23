@@ -1,0 +1,67 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson"
+  xmlns:f="/lib/form">
+
+  <!-- j:set_if was not working -->
+  <j:choose>
+    <j:when test="${artifactDeployer}">
+      <j:set var="extTitle" value="${%Packaging}" />
+    </j:when>
+    <j:otherwise>
+      <j:set var="extTitle" value="${%Extension}" />
+    </j:otherwise>
+  </j:choose>
+
+  <f:entry help="/plugin/repository-connector/help-groupId.html" field="groupId" title="${%GroupId}">
+    <f:textbox />
+  </f:entry>
+
+  <f:entry help="/plugin/repository-connector/help-artifactId.html" field="artifactId" title="${%ArtifactId}">
+    <f:textbox />
+  </f:entry>
+
+  <f:entry help="/plugin/repository-connector/help-version.html" field="version" title="${%Version}">
+    <f:textbox />
+  </f:entry>
+
+  <f:advanced>
+    <f:entry help="/plugin/repository-connector/help-classifier.html" field="classifier" title="${%Classifier}">
+      <f:textbox />
+    </f:entry>
+
+    <f:entry help="/plugin/repository-connector/help-extension.html" field="extension" title="${extTitle}">
+      <f:textbox />
+    </f:entry>
+
+    <!-- this is set vai the deployer jelly page -->
+    <j:if test="${artifactDeployer}">
+      <f:entry help="/plugin/repository-connector/help-pomFile.html" field="pomFile" title="${%PomFile}">
+        <f:textbox />
+      </f:entry>
+
+      <f:entry help="/plugin/repository-connector/help-deployToLocal.html" field="deployToLocal" title="${%DeployToLocal}">
+        <f:checkbox checked="true" />
+      </f:entry>
+
+      <f:entry help="/plugin/repository-connector/help-deployToRemote.html" field="deployToRemote" title="${%DeployToRemote}">
+        <f:checkbox checked="true" />
+      </f:entry>
+    </j:if>
+  </f:advanced>
+
+  <f:entry help="/plugin/repository-connector/help-failOnError.html" field="failOnError" title="${%FailOnError}">
+    <f:checkbox default="true" />
+  </f:entry>
+
+
+  <f:entry help="/plugin/repository-connector/help-targetFileName.html" field="targetFileName" title="${%TargetFilename}">
+    <f:textbox />
+  </f:entry>
+
+  <f:entry>
+    <div align="right">
+      <f:repeatableDeleteButton />
+    </div>
+  </f:entry>
+
+</j:jelly>

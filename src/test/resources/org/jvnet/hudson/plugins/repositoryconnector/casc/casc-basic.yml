@@ -1,0 +1,5 @@
+unclassified:
+  repository-connector:
+    repositories:
+    - id: central
+      url: https://repo1.maven.org/maven2

@@ -1,10 +1,8 @@
 /work
 /target
-/target
-/work
-/.classpath
-/.project
-/.settings
+.classpath
+.project
+.settings
 /bin
 nb-configuration.xml
 nbactions.xml
@@ -13,3 +11,4 @@ repository-connector.iml
 .README.md.html
 pom.xml.releaseBackup
 release.properties
+.DS_STORE
