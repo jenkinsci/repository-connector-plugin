@@ -32,7 +32,7 @@
   </properties>
 
   <description>Repository Connector adds a build step which allows to resolve artifacts from a maven repository like nexus.</description>
-  <url>https://wiki.jenkins-ci.org/display/JENKINS/Repository+Connector+Plugin</url>
+  <url>https://github.com/jenkinsci/repository-connector-plugin</url>
   <inceptionYear>2010</inceptionYear>
 
   <developers>
