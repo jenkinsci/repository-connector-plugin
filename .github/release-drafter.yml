@@ -1,0 +1,5 @@
+# from  https://github.com/jenkinsci/.github/blob/master/.github/release-drafter.yml
+_extends: .github
+tag-template: repository-connector-$NEXT_MINOR_VERSION
+name-template: Repository Connector Plugin $NEXT_MINOR_VERSION
+version-template: $MAJOR.$MINOR.$PATCH
