@@ -116,7 +116,7 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
         try {
             Aether aether = createAether();
 
-            versions.addAll(aether.resolveAvailableVersions(repositoryId, artifact, !oldestFirst,
+            versions.addAll(aether.resolveAvailableVersions(repositoryId, artifact, oldestFirst,
                     createVersionFilter(includeReleases, includeSnapshots)));
 
             if (versions.size() > 0) {
@@ -272,7 +272,7 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
         public FormValidation doValidateCoordinates(@QueryParameter String groupId, @QueryParameter String artifactId,
                 @QueryParameter boolean includeReleases, @QueryParameter boolean includeSnapshots, @QueryParameter String repositoryId,
                 @AncestorInPath Item item) {
-            
+
             return FormValidator.validateCoordinates(repositoryId, groupId, artifactId, createAether(item),
                     createVersionFilter(includeReleases, includeSnapshots));
         }

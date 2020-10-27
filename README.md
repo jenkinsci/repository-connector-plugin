@@ -18,6 +18,7 @@ should cease to work outright. :crossed_fingers:
 * Artifact deployment re-enabled
 * Version resolution build parameters are required to have a name (possible breaking change)
 * Separated repository and transfer logging into separate options
+* Artifact resolution 'fail on error' can be specified per artifact
 
 ##### Credentials
 
@@ -37,7 +38,7 @@ artifact itself would succeed but still result in failure because a dependency c
 ### Configuration-as-Code
 
 [JCasC](https://plugins.jenkins.io/configuration-as-code) is fully supported. Please visit the please visit the
-[wiki](https://github.com/jenkinsci/repository-connector-plugin/wiki/Configuration-as-Code) for additional details.
+[wiki](https://github.com/jenkinsci/repository-connector-plugin/wiki/Configuration) for additional details.
 
 ### Job DSL
 

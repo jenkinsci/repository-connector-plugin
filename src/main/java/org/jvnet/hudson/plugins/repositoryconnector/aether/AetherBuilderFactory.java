@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 
 import org.eclipse.aether.repository.Authentication;
-import org.eclipse.aether.util.repository.AuthenticationBuilder;
 import org.jvnet.hudson.plugins.repositoryconnector.Repository;
 import org.jvnet.hudson.plugins.repositoryconnector.util.CredentialsUtilities;
 
@@ -26,17 +25,17 @@ public class AetherBuilderFactory {
 
     private static final Logger logger = Logger.getLogger(AetherBuilderFactory.class.getName());
 
-    private final Collection<Repository> repositories;
-
     private final String localDirectory;
 
-    public AetherBuilderFactory(String localDirectory, Repository repository) {
-        this(localDirectory, Arrays.asList(repository));
-    }
+    private final Collection<Repository> repositories;
 
     public AetherBuilderFactory(String localDirectory, Collection<Repository> repositories) {
         this.localDirectory = localDirectory;
         this.repositories = repositories;
+    }
+
+    public AetherBuilderFactory(String localDirectory, Repository repository) {
+        this(localDirectory, Arrays.asList(repository));
     }
 
     public AetherBuilder createAetherBuilder(Item item) {
@@ -47,12 +46,9 @@ public class AetherBuilderFactory {
         return createAetherBuilder(repository -> getCredentials(repository, context));
     }
 
-    private Authentication getCredentials(Repository repository, Run<?, ?> context) {
-        return createAuthentication(CredentialsUtilities.get(repository.getCredentialsId(), context));
-    }
-
-    private Authentication getCredentials(Repository repository, Item item) {
-        return createAuthentication(CredentialsUtilities.get(repository.getCredentialsId(), item));
+    private AetherBuilder createAetherBuilder(Function<Repository, Authentication> function) {
+        File localRepository = getOrCreateLocalRepository();
+        return new AetherBuilder(localRepository, repositories).setCredentials(function);
     }
 
     private Authentication createAuthentication(StandardUsernamePasswordCredentials credentials) {
@@ -62,16 +58,16 @@ public class AetherBuilderFactory {
                 .orElse(null);
     }
 
-    private AetherBuilder createAetherBuilder(Function<Repository, Authentication> function) {
-        File localRepository = getOrCreateLocalRepository();
-        return new AetherBuilder(localRepository, repositories).setCredentials(function);
+    private Authentication createAuthentication(String user, Secret password) {
+        return AetherBuilder.createAuthentication(user, password);
     }
 
-    static Authentication createAuthentication(String user, Secret password) {
-        return new AuthenticationBuilder()
-                .addUsername(user)
-                .addPassword(password.getPlainText())
-                .build();
+    private Authentication getCredentials(Repository repository, Item item) {
+        return createAuthentication(CredentialsUtilities.get(repository.getCredentialsId(), item));
+    }
+
+    private Authentication getCredentials(Repository repository, Run<?, ?> context) {
+        return createAuthentication(CredentialsUtilities.get(repository.getCredentialsId(), context));
     }
 
     @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE", justification = "mkdirs")

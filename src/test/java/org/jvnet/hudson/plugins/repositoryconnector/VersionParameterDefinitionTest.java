@@ -21,8 +21,8 @@ public class VersionParameterDefinitionTest extends AbstractArtifactTest {
 
     @Test
     public void testGetVersions() throws Exception {
-        when(mockAether.resolveAvailableVersions(eq(null), any(), eq(true), any())).thenReturn(Arrays.asList("1"));
         when(mockAether.resolveAvailableVersions(eq(null), any(), eq(false), any())).thenReturn(Arrays.asList("2"));
+        when(mockAether.resolveAvailableVersions(eq(null), any(), eq(true), any())).thenReturn(Arrays.asList("1"));
 
         VersionParameterDefinition definition = createVersionParameterDefinition();
         definition.setUseLatest(false);
@@ -30,23 +30,24 @@ public class VersionParameterDefinitionTest extends AbstractArtifactTest {
 
         List<String> versions = definition.getVersions();
         assertEquals(1, versions.size());
-        assertEquals("1", versions.get(0));
+        assertEquals("2", versions.get(0));
 
         definition.setUseLatest(true);
-        definition.setUseRelease(true);        
+        definition.setUseRelease(true);
+
         versions = definition.getVersions();
-        
+
         assertEquals(3, versions.size());
         assertEquals("RELEASE", versions.get(0));
         assertEquals("LATEST", versions.get(1));
-        assertEquals("1", versions.get(2));
-        
-        // the jelly uses the inverse, so we have to pass 'false' here to enable this
+        assertEquals("2", versions.get(2));
+
+        // the jelly uses the 'inverse' of the checkbox, so we need to simulate that here
         definition.setOldestFirst(false);
         versions = definition.getVersions();
-        
+
         assertEquals(3, versions.size());
-        assertEquals("2", versions.get(0));
+        assertEquals("1", versions.get(0));
         assertEquals("RELEASE", versions.get(1));
         assertEquals("LATEST", versions.get(2));
     }
