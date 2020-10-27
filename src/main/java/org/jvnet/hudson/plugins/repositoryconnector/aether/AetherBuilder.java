@@ -22,11 +22,13 @@ import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
+import org.eclipse.aether.util.repository.AuthenticationBuilder;
 import org.eclipse.aether.util.repository.DefaultProxySelector;
 import org.jvnet.hudson.plugins.repositoryconnector.Repository;
 
 import hudson.ProxyConfiguration;
 import hudson.Util;
+import hudson.util.Secret;
 
 public class AetherBuilder {
 
@@ -87,7 +89,8 @@ public class AetherBuilder {
         }
 
         DefaultProxySelector proxySelector = new DefaultProxySelector();
-        Authentication authenticator = null;//createAuthentication(proxyConfiguration.getUserName(), proxyConfiguration.getSecretPassword());
+        Authentication authenticator = createAuthentication(proxyConfiguration.getUserName(),
+                proxyConfiguration.getSecretPassword());
 
         String nonProxyHosts = convertJenkinsNoProxyHosts(proxyConfiguration.getNoProxyHost());
 
@@ -100,6 +103,13 @@ public class AetherBuilder {
         return proxySelector;
     }
 
+    static Authentication createAuthentication(String user, Secret password) {
+        return new AuthenticationBuilder()
+                .addUsername(user)
+                .addPassword(password.getPlainText())
+                .build();
+    }
+
     private RepositorySystemSession createRepositorySession(RepositorySystem repositorySystem, ProxySelector proxySelector) {
         DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
 
@@ -108,8 +118,6 @@ public class AetherBuilder {
 
         // local filesystem repository where artifacts will be installed
         LocalRepository localRepository = new LocalRepository(localDirectory, "default");
-        System.out.println(localDirectory);
-        
         logger.log(Level.FINE, "using local maven artifact repository: {0}", localRepository);
 
         session.setLocalRepositoryManager(repositorySystem.newLocalRepositoryManager(session, localRepository));
