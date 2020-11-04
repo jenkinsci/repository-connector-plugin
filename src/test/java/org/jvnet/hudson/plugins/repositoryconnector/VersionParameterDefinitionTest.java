@@ -52,9 +52,25 @@ public class VersionParameterDefinitionTest extends AbstractArtifactTest {
         assertEquals("LATEST", versions.get(2));
     }
 
+    @Test
+    public void testGetVersionParameterValue() {
+        VersionParameterDefinition definition = createVersionParameterDefinition();
+        definition.setRepositoryId("repositoryId");
+
+        VersionParameterValue value = (VersionParameterValue) definition.createValue("version");
+
+        assertEquals("name", value.getName());
+        assertEquals("version", value.getValue());
+        assertEquals("desc", value.getDescription());
+
+        assertEquals("groupId", value.getGroupId());
+        assertEquals("artifactId", value.getArtifactId());
+        assertEquals("repositoryId", value.getRepositoryId());
+    }
+
     @SuppressWarnings("serial")
     private VersionParameterDefinition createVersionParameterDefinition() {
-        return new VersionParameterDefinition("name", null, "groupId", "artifactId") {
+        return new VersionParameterDefinition("name", "desc", "groupId", "artifactId") {
             @Override
             Aether createAether() {
                 return mockAether;

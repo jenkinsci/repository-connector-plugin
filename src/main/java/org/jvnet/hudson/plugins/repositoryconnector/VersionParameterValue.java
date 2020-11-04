@@ -15,7 +15,7 @@ public class VersionParameterValue extends StringParameterValue {
     private final String repositoryId;
 
     public VersionParameterValue(String name, String description, String repositoryId, String groupId, String artifactId, String value) {
-        super(name, description, value);
+        super(name, value, description);
 
         this.groupId = groupId;
         this.artifactId = artifactId;
