@@ -18,8 +18,6 @@
     <java.level>8</java.level>
     <hpi.compatibleSinceVersion>2.0.0</hpi.compatibleSinceVersion>
 
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
     <maven.version>3.6.3</maven.version>
     <maven-resolver.version>1.4.2</maven-resolver.version>
 
