@@ -15,7 +15,7 @@
   <packaging>hpi</packaging>
 
   <properties>
-    <jenkins.version>2.274</jenkins.version>
+    <jenkins.version>2.263.2</jenkins.version>
     <java.level>8</java.level>
     <hpi.compatibleSinceVersion>2.0.0</hpi.compatibleSinceVersion>
 
@@ -26,7 +26,7 @@
     <credentials-plugin.version>2.3.13</credentials-plugin.version>
     <jobdsl-plugin.version>1.77</jobdsl-plugin.version>
     <structs-plugin.version>1.20</structs-plugin.version>
-    <token-macro-plugin.version>2.14</token-macro-plugin.version>
+    <token-macro-plugin.version>2.12</token-macro-plugin.version>
   </properties>
 
   <description>Repository Connector adds a build step which allows to resolve artifacts from a maven repository like nexus.</description>
