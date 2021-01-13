@@ -3,6 +3,7 @@ package org.jvnet.hudson.plugins.repositoryconnector.aether;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
@@ -122,6 +123,9 @@ public class RemoteRepositoryFactoryTest {
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getUrl(), actual.getUrl());
 
+        assertTrue(actual.isRepositoryManager());
+        assertEquals(1, actual.getMirroredRepositories().size());
+        
         assertNull(actual.getProxy());
         assertNull(actual.getAuthentication());
     }

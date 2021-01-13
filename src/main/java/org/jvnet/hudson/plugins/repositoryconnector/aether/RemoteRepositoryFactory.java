@@ -39,7 +39,7 @@ class RemoteRepositoryFactory {
                 .map(found -> mapToDeployable(found, snapshot))
                 .orElseThrow(() -> new AetherException("no repository configuration found for id [" + repositoryId + "]"));
 
-        return createRepositoryBuilder(repository).build();
+        return createRemoteRepository(repository);
     }
 
     List<RemoteRepository> getResolutionRepositories(String repositoryId) throws AetherException {
@@ -49,14 +49,7 @@ class RemoteRepositoryFactory {
 
         return repositories.stream()
                 .filter(repository -> repositoryId == null || repository.getId().equals(repositoryId))
-                .map(repository -> {
-                    RemoteRepository.Builder builder = createRepositoryBuilder(repository);
-
-                    addReleasePolicy(builder, repository);
-                    addSnapshotPolicy(builder, repository);
-
-                    return builder.build();
-                })
+                .map(this::createRemoteRepository)
                 .collect(Collectors.toList());
     }
 
@@ -68,16 +61,29 @@ class RemoteRepositoryFactory {
         builder.setReleasePolicy(createRepositoryPolicy(repository.isEnableSnapshotRepository(), repository.getSnapshotRepository()));
     }
 
-    private RemoteRepository.Builder createRepositoryBuilder(Repository repository) {
+    private RemoteRepository createRemoteRepository(Repository repository) {
         RemoteRepository.Builder builder = new RemoteRepository.Builder(repository.getId(), repository.getType(), repository.getUrl());
         builder.setAuthentication(credentials.apply(repository));
 
+        addReleasePolicy(builder, repository);
+        addSnapshotPolicy(builder, repository);
+
+        RemoteRepository mirror = builder.build();
+
         if (proxySelector != null) {
             // irritating
-            builder.setProxy(proxySelector.getProxy(builder.build()));
+            mirror = builder.setProxy(proxySelector.getProxy(mirror)).build();
         }
 
-        return builder;
+        /*- 
+         * it seems this is required for snapshot resolution, otherwise only the first version found is ever returned.
+         * 
+         * prior to the switch to maven's aether this was a configurable option, however until someone complains, it may
+         * be better to just leave this configuration as is.
+         */
+        return builder.addMirroredRepository(mirror)
+                .setRepositoryManager(true)
+                .build();
     }
 
     private RepositoryPolicy createRepositoryPolicy(boolean enabled, Repository.RepositoryType policy) {
