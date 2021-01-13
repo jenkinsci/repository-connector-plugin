@@ -72,8 +72,9 @@ public class AetherBuilder {
         return this;
     }
 
-    public void setTransferLogger(PrintStream console) {
+    public AetherBuilder setTransferLogger(PrintStream console) {
         this.transferConsole = console;
+        return this;
     }
 
     private ProxySelector createProxySelector() {
