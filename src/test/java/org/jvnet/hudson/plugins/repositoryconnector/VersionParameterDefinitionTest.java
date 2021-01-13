@@ -1,6 +1,7 @@
 package org.jvnet.hudson.plugins.repositoryconnector;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -66,6 +67,17 @@ public class VersionParameterDefinitionTest extends AbstractArtifactTest {
         assertEquals("groupId", value.getGroupId());
         assertEquals("artifactId", value.getArtifactId());
         assertEquals("repositoryId", value.getRepositoryId());
+    }
+
+    @Test
+    public void testEscapeInputs() {
+        VersionParameterDefinition vpd = new VersionParameterDefinition("<", "<", "", "");
+
+        assertEquals("&lt;", vpd.getName());
+        assertEquals("&lt;", vpd.getDescription());
+
+        assertNull(vpd.getGroupId());
+        assertNull(vpd.getArtifactId());
     }
 
     @SuppressWarnings("serial")
