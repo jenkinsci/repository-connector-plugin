@@ -59,10 +59,10 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
 
     @DataBoundConstructor
     public VersionParameterDefinition(String name, String description, String groupId, String artifactId) {
-        super(Util.fixEmpty(name), Util.fixEmpty(description));
+        super(fixInput(name), fixInput(description));
 
-        this.groupId = groupId;
-        this.artifactId = artifactId;
+        this.groupId = fixInput(groupId);
+        this.artifactId = fixInput(artifactId);
 
         setIncludeReleases(true);
         setIncludeSnapshots(true);
@@ -235,6 +235,10 @@ public class VersionParameterDefinition extends SimpleParameterDefinition {
 
     private static VersionFilter createVersionFilter(boolean releases, boolean snapshots) {
         return new VersionFilter(releases, snapshots);
+    }
+    
+    private static String fixInput(String input) {
+        return Util.escape(Util.fixEmpty(input));
     }
 
     @Extension
