@@ -58,7 +58,7 @@ class RemoteRepositoryFactory {
     }
 
     private void addSnapshotPolicy(Builder builder, Repository repository) {
-        builder.setReleasePolicy(createRepositoryPolicy(repository.isEnableSnapshotRepository(), repository.getSnapshotRepository()));
+        builder.setSnapshotPolicy(createRepositoryPolicy(repository.isEnableSnapshotRepository(), repository.getSnapshotRepository()));
     }
 
     private RemoteRepository createRemoteRepository(Repository repository) {
