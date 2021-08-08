@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Collection;
 
-import com.google.common.io.Files;
+import java.nio.file.Files;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -89,8 +89,8 @@ public class AetherIT {
     }
 
     @BeforeClass
-    public static void startup() {
-        localRepository = Files.createTempDir();
+    public static void startup() throws IOException {
+        localRepository = Files.createTempDirectory(null).toFile();
     }
 
     @AfterClass
