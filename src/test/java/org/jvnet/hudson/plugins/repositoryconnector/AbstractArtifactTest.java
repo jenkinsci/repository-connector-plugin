@@ -8,7 +8,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.io.Files;
+import java.nio.file.Files;
 
 import org.junit.After;
 import org.junit.Before;
@@ -54,7 +54,7 @@ abstract class AbstractArtifactTest {
         when(mockListener.getLogger()).thenReturn(mockPrintStream);
 
         artifacts = new ArrayList<>();
-        workspace = new FilePath(Files.createTempDir());
+        workspace = new FilePath(Files.createTempDirectory(null).toFile());
     }
 
     protected File getTestJar() throws URISyntaxException {

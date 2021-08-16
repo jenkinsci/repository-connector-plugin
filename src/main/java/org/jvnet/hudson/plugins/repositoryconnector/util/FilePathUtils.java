@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import com.google.common.io.Files;
+import java.nio.file.Files;
 
 import hudson.FilePath;
 
@@ -22,7 +22,7 @@ public class FilePathUtils {
     }
 
     static OutputStream createOutputStream(File file) throws IOException {
-        return Files.newOutputStreamSupplier(file).getOutput();
+        return Files.newOutputStream(file.toPath());
     }
 
     static File createTempFile(String prefix, String suffix) throws IOException {
