@@ -26,7 +26,7 @@ public class FilePathUtils {
     }
 
     static File createTempFile(String prefix, String suffix) throws IOException {
-        File file = File.createTempFile(prefix + "-", "." + suffix);
+        File file = Files.createTempFile(prefix + "-", "." + suffix).toFile();
         // always delete on exit but try to delete sooner...
         file.deleteOnExit();
 
