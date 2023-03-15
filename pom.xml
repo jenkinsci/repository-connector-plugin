@@ -22,7 +22,7 @@
     <maven-resolver.version>1.6.1</maven-resolver.version>
 
     <casc-plugin.version>1.44</casc-plugin.version>
-    <credentials-plugin.version>2.3.13</credentials-plugin.version>
+    <credentials-plugin.version>2.6.1.1</credentials-plugin.version>
     <jobdsl-plugin.version>1.77</jobdsl-plugin.version>
     <structs-plugin.version>1.20</structs-plugin.version>
     <token-macro-plugin.version>2.12</token-macro-plugin.version>
