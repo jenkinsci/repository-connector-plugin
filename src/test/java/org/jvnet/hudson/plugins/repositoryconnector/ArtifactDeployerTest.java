@@ -58,6 +58,17 @@ public class ArtifactDeployerTest extends AbstractArtifactTest {
     }
 
     @Test
+    public void testTokenExpansion() throws Exception {
+        Artifact artifact = createArtifact(true);
+        artifact.setPomFile(getTestJar().getAbsolutePath());
+
+        deployer.perform(mockRun, workspace, null, mockListener);
+
+        verify(mockAether).install(artifact);
+        verify(mockAether).deploy("central", artifact);
+    }
+
+    @Test
     public void testSuccess() throws Exception {
         Artifact artifact = createArtifact(true);
 
