@@ -7,10 +7,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
 import java.io.PrintStream;
+import java.net.URISyntaxException;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.jvnet.hudson.plugins.repositoryconnector.artifact.Artifact;
 import org.jvnet.hudson.plugins.repositoryconnector.util.TokenMacroExpander;
+import org.mockito.Mock;
 
 import hudson.FilePath;
 import hudson.model.Run;
