@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 
 import org.junit.After;
 import org.junit.Before;
