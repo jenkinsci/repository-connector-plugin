@@ -3,8 +3,6 @@ package org.jvnet.hudson.plugins.repositoryconnector.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -17,6 +15,7 @@ import org.junit.Test;
 import org.jvnet.hudson.plugins.repositoryconnector.Artifact;
 import org.jvnet.hudson.plugins.repositoryconnector.util.TokenMacroExpander;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import hudson.FilePath;
 import hudson.model.Run;
@@ -50,7 +49,7 @@ public class TokenMacroExpanderTest {
 
         workspace = new FilePath(Files.createTempDirectory(null).toFile());
 
-        tokenExpander = createExpander(mockRun, workspace, mockListener);
+        tokenExpander = new TokenMacroExpander(mockRun, workspace, mockListener);
     }
 
     @Test
