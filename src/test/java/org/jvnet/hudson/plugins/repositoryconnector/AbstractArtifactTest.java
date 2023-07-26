@@ -61,16 +61,13 @@ abstract class AbstractArtifactTest {
         return new File(this.getClass().getResource("test.jar").toURI());
     }
 
-    protected File getTestPom() throws URISyntaxException {
-        return new File(this.getClass().getResource("test-pom.xml").toURI());
-    }
-
     @SuppressWarnings("unused")
     protected Artifact createArtifact(boolean failOnError) throws Exception {
         Artifact artifact = new Artifact("org.junit.jupiter", "junit-jupiter", "5.7.0");
         artifact.setFailOnError(failOnError);
 
         artifacts.add(artifact);
+        // expand() actually recreates the Artifact, but this is good enough for this mock.
         when(mockExpander.expand(artifact)).thenReturn(artifact);
 
         return artifact;
