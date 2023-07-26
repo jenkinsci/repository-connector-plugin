@@ -41,7 +41,7 @@ public class TokenMacroExpander {
         expanded.setTargetFileName(expand(artifact.getTargetFileName()));
         
         expanded.setFailOnError(artifact.isFailOnError());
-        expanded.setDeployToLocal(artifact.isDeployToLocal()));
+        expanded.setDeployToLocal(artifact.isDeployToLocal());
         expanded.setDeployToRemote(artifact.isDeployToRemote());
 
         return expanded;
