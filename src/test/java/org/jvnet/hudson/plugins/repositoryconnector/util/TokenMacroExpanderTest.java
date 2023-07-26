@@ -85,8 +85,7 @@ public class TokenMacroExpanderTest {
 
         // optional params
         assertEquals("dummy", expanded.classifier);
-        // TODO: deployToLocal is not preserved
-        // assertFalse(expanded.deployToLocal);
+        assertFalse(expanded.deployToLocal);
         assertFalse(expanded.deployToRemote);
         assertEquals("war", expanded.extension);
         assertTrue(expanded.failOnError);
