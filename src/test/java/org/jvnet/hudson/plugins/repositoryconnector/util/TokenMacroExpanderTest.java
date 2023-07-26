@@ -14,7 +14,7 @@ import java.net.URISyntaxException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.jvnet.hudson.plugins.repositoryconnector.artifact.Artifact;
+import org.jvnet.hudson.plugins.repositoryconnector.Artifact;
 import org.jvnet.hudson.plugins.repositoryconnector.util.TokenMacroExpander;
 import org.mockito.Mock;
 
