@@ -82,6 +82,7 @@ public class TokenMacroExpanderTest {
         assertEquals(artifact.artifactId, expanded.artifactId);
         assertEquals(artifact.groupId, expanded.groupId);
         assertEquals(artifact.version, expanded.version);
+        assertEquals(artifact.targetFileName, expanded.targetFileName);
 
         // optional params
         assertEquals("dummy", expanded.classifier);
