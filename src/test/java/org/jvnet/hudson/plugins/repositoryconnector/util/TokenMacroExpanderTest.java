@@ -68,7 +68,7 @@ public class TokenMacroExpanderTest {
         assertEquals(artifact.getFailOnError(), expanded.getFailOnError());
         assertEquals(artifact.getGroupId(), expanded.getGroupId());
         assertEquals(artifact.getPomFile(), expanded.getPomFile());
-        assertEquals(artifact.getTargetFileName(), expanded.getTargetFileNam()));
+        assertEquals(artifact.getTargetFileName(), expanded.getTargetFileNam());
         assertEquals(artifact.getVersion(), expanded.getVersion());
     }
 
@@ -88,7 +88,7 @@ public class TokenMacroExpanderTest {
         assertEquals(artifact.getArtifactId(), expanded.getArtifactId());
         assertEquals(artifact.getGroupId(), expanded.getGroupId());
         assertEquals(artifact.getVersion(), expanded.getVersion());
-        assertEquals(artifact.getTargetFileName(), expanded.getTargetFileNam()));
+        assertEquals(artifact.getTargetFileName(), expanded.getTargetFileNam());
 
         // optional params
         assertEquals("dummy", expanded.getClassifier());
