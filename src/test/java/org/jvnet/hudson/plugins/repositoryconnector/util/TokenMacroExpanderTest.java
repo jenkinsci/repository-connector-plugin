@@ -62,10 +62,10 @@ public class TokenMacroExpanderTest {
         // This list of asserts is alphabetized like in Artifact
         assertEquals(artifact.getArtifactId(), expanded.getArtifactId());
         assertEquals(artifact.getClassifier(), expanded.getClassifier());
-        assertEquals(artifact.getDeployToLocal(), expanded.getDeployToLocal());
-        assertEquals(artifact.getDeployToRemote(), expanded.getDeployToRemote());
+        assertEquals(artifact.isDeployToLocal(), expanded.isDeployToLocal());
+        assertEquals(artifact.isDeployToRemote(), expanded.isDeployToRemote());
         assertEquals(artifact.getExtension(), expanded.getExtension());
-        assertEquals(artifact.getFailOnError(), expanded.getFailOnError());
+        assertEquals(artifact.isFailOnError(), expanded.isFailOnError());
         assertEquals(artifact.getGroupId(), expanded.getGroupId());
         assertEquals(artifact.getPomFile(), expanded.getPomFile());
         assertEquals(artifact.getTargetFileName(), expanded.getTargetFileNam());
@@ -92,10 +92,10 @@ public class TokenMacroExpanderTest {
 
         // optional params
         assertEquals("dummy", expanded.getClassifier());
-        assertFalse(expanded.getDeployToLocal());
-        assertFalse(expanded.getDeployToRemote());
+        assertFalse(expanded.isDeployToLocal());
+        assertFalse(expanded.isDeployToRemote());
         assertEquals("war", expanded.getExtension());
-        assertTrue(expanded.getFailOnError());
+        assertTrue(expanded.isFailOnError());
         assertEquals(artifact.getPomFile(), expanded.getPomFile());
     }
 
