@@ -80,7 +80,7 @@ public class TokenMacroExpanderTest {
         artifact.setDeployToRemote(false);
         artifact.setExtension("war");
         artifact.setFailOnError(true);
-        artifact.setPomFile(getTestJar().getAbsolutePath());
+        artifact.setPomFile(getTestPom().getAbsolutePath());
 
         Artifact expanded = tokenExpander.expand(artifact);
 
@@ -100,11 +100,11 @@ public class TokenMacroExpanderTest {
     }
 
     protected File getTestJar() throws URISyntaxException {
-        return new File(this.getClass().getResource("test.jar").toURI());
+        return new File(this.getClass().getResource("../test.jar").toURI());
     }
 
     protected File getTestPom() throws URISyntaxException {
-        return new File(this.getClass().getResource("test-pom.xml").toURI());
+        return new File(this.getClass().getResource("../test-pom.xml").toURI());
     }
 
     protected Artifact createArtifact() throws Exception {
