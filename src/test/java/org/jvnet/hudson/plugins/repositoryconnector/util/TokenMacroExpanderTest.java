@@ -50,7 +50,7 @@ public class TokenMacroExpanderTest {
 
         workspace = new FilePath(Files.createTempDirectory(null).toFile());
 
-        tokenExpander = new TokenMacroExpander(mockRun, workspace, mockListener);
+        tokenExpander = new TokenMacroExpander(mockRun, mockListener, workspace);
     }
 
     @Test
@@ -60,16 +60,16 @@ public class TokenMacroExpanderTest {
         Artifact expanded = tokenExpander.expand(artifact);
 
         // This list of asserts is alphabetized like in Artifact
-        assertEquals(artifact.artifactId, expanded.artifactId);
-        assertEquals(artifact.classifier, expanded.classifier);
-        assertEquals(artifact.deployToLocal, expanded.deployToLocal);
-        assertEquals(artifact.deployToRemote, expanded.deployToRemote);
-        assertEquals(artifact.extension, expanded.extension);
-        assertEquals(artifact.failOnError, expanded.failOnError);
-        assertEquals(artifact.groupId, expanded.groupId);
-        assertEquals(artifact.pomFile, expanded.pomFile);
-        assertEquals(artifact.targetFileName, expanded.targetFileName);
-        assertEquals(artifact.version, expanded.version);
+        assertEquals(artifact.getArtifactId(), expanded.getArtifactId());
+        assertEquals(artifact.getClassifier(), expanded.getClassifier());
+        assertEquals(artifact.getDeployToLocal(), expanded.getDeployToLocal());
+        assertEquals(artifact.getDeployToRemote(), expanded.getDeployToRemote());
+        assertEquals(artifact.getExtension(), expanded.getExtension());
+        assertEquals(artifact.getFailOnError(), expanded.getFailOnError());
+        assertEquals(artifact.getGroupId(), expanded.getGroupId());
+        assertEquals(artifact.getPomFile(), expanded.getPomFile());
+        assertEquals(artifact.getTargetFileName(), expanded.getTargetFileNam()));
+        assertEquals(artifact.getVersion(), expanded.getVersion());
     }
 
     @Test
@@ -85,18 +85,18 @@ public class TokenMacroExpanderTest {
         Artifact expanded = tokenExpander.expand(artifact);
 
         // required params
-        assertEquals(artifact.artifactId, expanded.artifactId);
-        assertEquals(artifact.groupId, expanded.groupId);
-        assertEquals(artifact.version, expanded.version);
-        assertEquals(artifact.targetFileName, expanded.targetFileName);
+        assertEquals(artifact.getArtifactId(), expanded.getArtifactId());
+        assertEquals(artifact.getGroupId(), expanded.getGroupId());
+        assertEquals(artifact.getVersion(), expanded.getVersion());
+        assertEquals(artifact.getTargetFileName(), expanded.getTargetFileNam()));
 
         // optional params
-        assertEquals("dummy", expanded.classifier);
-        assertFalse(expanded.deployToLocal);
-        assertFalse(expanded.deployToRemote);
-        assertEquals("war", expanded.extension);
-        assertTrue(expanded.failOnError);
-        assertEquals(artifact.pomFile, expanded.pomFile);
+        assertEquals("dummy", expanded.getClassifier());
+        assertFalse(expanded.getDeployToLocal());
+        assertFalse(expanded.getDeployToRemote());
+        assertEquals("war", expanded.getExtension());
+        assertTrue(expanded.getFailOnError());
+        assertEquals(artifact.getPomFile(), expanded.getPomFile());
     }
 
     protected File getTestJar() throws URISyntaxException {
