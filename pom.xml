@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>4.24</version>
+    <version>4.51</version>
     <relativePath />
   </parent>
 
@@ -13,9 +13,19 @@
   <version>2.2.2-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.jenkins.tools.bom</groupId>
+        <artifactId>bom-2.346.x</artifactId>
+        <version>1763.v092b_8980a_f5e</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
   <properties>
-    <jenkins.version>2.263.2</jenkins.version>
-    <java.level>8</java.level>
+    <jenkins.version>2.346.1</jenkins.version>
     <hpi.compatibleSinceVersion>2.0.0</hpi.compatibleSinceVersion>
 
     <maven.version>3.6.3</maven.version>
@@ -25,7 +35,7 @@
     <credentials-plugin.version>2.3.13</credentials-plugin.version>
     <jobdsl-plugin.version>1.77</jobdsl-plugin.version>
     <structs-plugin.version>1.20</structs-plugin.version>
-    <token-macro-plugin.version>2.12</token-macro-plugin.version>
+    <token-macro-plugin.version>2.14</token-macro-plugin.version>
   </properties>
 
   <description>Repository Connector adds a build step which allows to resolve artifacts from a maven repository like nexus.</description>
@@ -235,12 +245,6 @@
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>token-macro</artifactId>
       <version>${token-macro-plugin.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.ow2.asm</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
