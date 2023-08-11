@@ -26,7 +26,6 @@
           <version>5.7.0</version>
         </org.jvnet.hudson.plugins.repositoryconnector.Artifact>
       </artifacts>
-      <credentialsId>user-pass</credentialsId>
       <enableRepositoryLogging>true</enableRepositoryLogging>
       <enableTransferLogging>false</enableTransferLogging>
       <repositoryId>central</repositoryId>
