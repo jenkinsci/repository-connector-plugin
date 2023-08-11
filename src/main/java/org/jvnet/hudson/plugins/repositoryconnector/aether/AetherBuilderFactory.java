@@ -39,16 +39,16 @@ public class AetherBuilderFactory {
     }
 
     public AetherBuilder createAetherBuilder(Item item) {
-        return createAetherBuilder(repository -> getCredentials(repository, item));
+        return createAetherBuilder(null, repository -> getCredentials(repository, item));
     }
 
     public AetherBuilder createAetherBuilder(Run<?, ?> context) {
-        return createAetherBuilder(repository -> getCredentials(repository, context));
+        return createAetherBuilder(context, repository -> getCredentials(repository, context));
     }
 
-    private AetherBuilder createAetherBuilder(Function<Repository, Authentication> function) {
+    private AetherBuilder createAetherBuilder(Run<?, ?> context, Function<Repository, Authentication> function) {
         File localRepository = getOrCreateLocalRepository();
-        return new AetherBuilder(localRepository, repositories).setCredentials(function);
+        return new AetherBuilder(localRepository, repositories).setContext(context).setCredentials(function);
     }
 
     private Authentication createAuthentication(StandardUsernamePasswordCredentials credentials) {

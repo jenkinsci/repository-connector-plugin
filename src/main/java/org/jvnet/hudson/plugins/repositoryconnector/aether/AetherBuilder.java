@@ -26,6 +26,7 @@ import org.eclipse.aether.util.repository.AuthenticationBuilder;
 import org.eclipse.aether.util.repository.DefaultProxySelector;
 import org.jvnet.hudson.plugins.repositoryconnector.Repository;
 
+import hudson.model.Run;
 import hudson.ProxyConfiguration;
 import hudson.Util;
 import hudson.util.Secret;
@@ -33,6 +34,8 @@ import hudson.util.Secret;
 public class AetherBuilder {
 
     private static final Logger logger = Logger.getLogger(AetherBuilder.class.getName());
+
+    private Run<?, ?> context;
 
     private Function<Repository, Authentication> credentials;
 
@@ -60,6 +63,11 @@ public class AetherBuilder {
         RepositorySystemSession repositorySession = createRepositorySession(repositorySystem, proxySelector);
 
         return new Aether(new RemoteRepositoryFactory(repositories, proxySelector, credentials), repositorySystem, repositorySession);
+    }
+
+    public AetherBuilder setContext(Run<?, ?> context) {
+        this.context = context;
+        return this;
     }
 
     public AetherBuilder setCredentials(Function<Repository, Authentication> credentials) {
@@ -124,7 +132,9 @@ public class AetherBuilder {
         session.setLocalRepositoryManager(repositorySystem.newLocalRepositoryManager(session, localRepository));
 
         if (repositoryConsole != null) {
-            session.setRepositoryListener(new ConsoleRepositoryListener(repositoryConsole));
+            session.setRepositoryListener(new ConsoleRepositoryListener(repositoryConsole, context));
+        } else {
+            session.setRepositoryListener(new RecorderRepositoryListener(context));
         }
 
         if (transferConsole != null) {
