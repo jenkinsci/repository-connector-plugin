@@ -165,7 +165,7 @@ public class RecorderAction extends InvisibleAction {
             version = event.getMetadata().getVersion();
             nature = event.getMetadata().getNature().toString();
             type = event.getMetadata().getType();
-            File file = event.getArtifact().getFile();
+            File file = event.getMetadata().getFile();
             if (file == null) {
                 // this shouldn't happen after deploy, but be defensive.
                 filePath = fileName = "";
