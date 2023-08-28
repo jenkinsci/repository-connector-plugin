@@ -5,13 +5,15 @@ import java.io.PrintStream;
 import org.eclipse.aether.RepositoryEvent;
 
 import hudson.model.Run;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.spi.connector.layout.RepositoryLayoutProvider;
 
 public class ConsoleRepositoryListener extends RecorderRepositoryListener {
 
     private PrintStream out;
 
-    public ConsoleRepositoryListener(PrintStream out, Run<?, ?> context) {
-        super(context);
+    public ConsoleRepositoryListener(PrintStream out, RepositoryLayoutProvider layoutProvider, RepositorySystemSession session, Run<?, ?> context) {
+        super(layoutProvider, session, context);
         this.out = (out != null) ? out : System.out;
     }
 
