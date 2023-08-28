@@ -15,7 +15,7 @@ import java.util.Collection;
  * This is designed as a stapler-exportable object, so that the lists of artifacts
  * show up in API calls in the 'actions' list of a build.
  */
-@ExportedBean(defaultVisibility = 2)
+@ExportedBean
 public class RecorderAction extends InvisibleAction {
 
     private final ArrayList<Artifact> artifactsDeployed;
@@ -45,7 +45,7 @@ public class RecorderAction extends InvisibleAction {
         return metadataDeployed;
     }
 
-    @ExportedBean(defaultVisibility = 2)
+    @ExportedBean(defaultVisibility = 999)
     public static class Artifact {
         private final String repositoryId;
         private final String groupId;
@@ -146,7 +146,7 @@ public class RecorderAction extends InvisibleAction {
         }
     }
 
-    @ExportedBean(defaultVisibility = 2)
+    @ExportedBean(defaultVisibility = 999)
     public static class Metadata {
         private final String repositoryId;
         private final String groupId;
