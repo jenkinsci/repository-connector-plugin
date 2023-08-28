@@ -68,7 +68,8 @@ public class RecorderAction extends InvisibleAction {
             isSnapshot = event.getArtifact().isSnapshot();
             classifier = event.getArtifact().getClassifier();
             extension = event.getArtifact().getExtension();
-            File file = event.getArtifact().getFile();
+            File file = event.getFile();
+//            File file = event.getArtifact().getFile();
             if (file == null) {
                 // this shouldn't happen after deploy, but be defensive.
                 filePath = fileName = "";
@@ -165,7 +166,8 @@ public class RecorderAction extends InvisibleAction {
             version = event.getMetadata().getVersion();
             nature = event.getMetadata().getNature().toString();
             type = event.getMetadata().getType();
-            File file = event.getMetadata().getFile();
+            File file = event.getFile();
+//            File file = event.getMetadata().getFile();
             if (file == null) {
                 // this shouldn't happen after deploy, but be defensive.
                 filePath = fileName = "";
