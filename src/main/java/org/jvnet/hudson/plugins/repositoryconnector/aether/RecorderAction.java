@@ -2,6 +2,8 @@ package org.jvnet.hudson.plugins.repositoryconnector.aether;
 
 import hudson.model.InvisibleAction;
 import org.eclipse.aether.RepositoryEvent;
+import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.repository.ArtifactRepository;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.spi.connector.layout.RepositoryLayout;
 import org.kohsuke.stapler.export.Exported;
@@ -65,36 +67,39 @@ public class RecorderAction extends InvisibleAction {
         private final String url;
 
         public Artifact(RepositoryEvent event, RepositoryLayout repositoryLayout) {
-            repositoryId = event.getRepository().getId();
-            groupId = event.getArtifact().getGroupId();
-            artifactId = event.getArtifact().getArtifactId();
-            version = event.getArtifact().getVersion();
-            baseVersion = event.getArtifact().getBaseVersion();
-            isSnapshot = event.getArtifact().isSnapshot();
-            classifier = event.getArtifact().getClassifier();
-            extension = event.getArtifact().getExtension();
+            ArtifactRepository repository = event.getRepository();
+            org.eclipse.aether.artifact.Artifact artifact = event.getArtifact();
+
+            repositoryId = repository.getId();
+            groupId = artifact.getGroupId();
+            artifactId = artifact.getArtifactId();
+            version = artifact.getVersion();
+            baseVersion = artifact.getBaseVersion();
+            isSnapshot = artifact.isSnapshot();
+            classifier = artifact.getClassifier();
+            extension = artifact.getExtension();
 
             String downloadPath = "";
             String downloadFileName = "";
             String downloadUrl = "";
-            if (repositoryLayout != null && event.getRepository() instanceof RemoteRepository) {
+            if (repositoryLayout != null && repository instanceof RemoteRepository) {
                 // As long as we are only recording deployments, this will always be remote.
                 try {
-                    URI downloadLocation = repositoryLayout.getLocation(event.getArtifact(), false);
-                    // calculate downloadUrl first to avoid any (inadvertent) changes to downloadLocation.
-                    downloadUrl = new URI(
-                        downloadLocation.getScheme(),
-                        null, // drop any userInfo (user:password)
-                        downloadLocation.getHost(),
-                        downloadLocation.getPort(),
-                        downloadLocation.getPath(),
-                        downloadLocation.getQuery(),
-                        downloadLocation.getFragment()
-                    ).toString();
-
-                    downloadPath = (new URI(((RemoteRepository) event.getRepository()).getUrl()))
-                            .relativize(downloadLocation).getPath();
+                    // getLocation returns a URI instance that ONLY has a path (no scheme, host, ...)
+                    URI downloadLocation = repositoryLayout.getLocation(artifact, false);
+                    downloadPath = downloadLocation.getPath();
                     downloadFileName = Paths.get(downloadPath).getFileName().toString();
+
+                    URI repoUri = new URI(((RemoteRepository) repository).getUrl());
+                    downloadUrl = new URI(
+                        repoUri.getScheme(),
+                        null, // drop any userInfo (user:password)
+                        repoUri.getHost(),
+                        repoUri.getPort(),
+                        repoUri.resolve(downloadLocation).getPath(),
+                        repoUri.getQuery(),
+                        repoUri.getFragment()
+                    ).toString();
                 } catch (URISyntaxException ignored) {
                 }
             }
