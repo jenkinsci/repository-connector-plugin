@@ -2,10 +2,8 @@ package org.jvnet.hudson.plugins.repositoryconnector.aether;
 
 import hudson.model.InvisibleAction;
 import org.eclipse.aether.RepositoryEvent;
-import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
-import org.eclipse.aether.spi.connector.layout.RepositoryLayoutProvider;
-import org.eclipse.aether.transfer.NoRepositoryLayoutException;
+import org.eclipse.aether.spi.connector.layout.RepositoryLayout;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -28,18 +26,14 @@ public class RecorderAction extends InvisibleAction {
 
     private final ArrayList<Metadata> metadataDeployed;
 
-    private final RepositoryLayoutProvider repositoryLayoutProvider;
-    private final RepositorySystemSession session;
 
-    public RecorderAction(RepositoryLayoutProvider repositoryLayoutProvider, RepositorySystemSession session) {
+    public RecorderAction() {
         artifactsDeployed = new ArrayList<>();
         metadataDeployed = new ArrayList<>();
-        this.repositoryLayoutProvider = repositoryLayoutProvider;
-        this.session = session;
     }
 
-    public void recordArtifactDeployed(RepositoryEvent event) {
-        artifactsDeployed.add(new Artifact(event));
+    public void recordArtifactDeployed(RepositoryEvent event, RepositoryLayout repositoryLayout) {
+        artifactsDeployed.add(new Artifact(event, repositoryLayout));
     }
 
     public void recordMetadataDeployed(RepositoryEvent event) {
@@ -57,7 +51,7 @@ public class RecorderAction extends InvisibleAction {
     }
 
     @ExportedBean(defaultVisibility = 999)
-    public class Artifact {
+    public static class Artifact {
         private final String repositoryId;
         private final String groupId;
         private final String artifactId;
@@ -70,7 +64,7 @@ public class RecorderAction extends InvisibleAction {
         private final String fileName;
         private final String url;
 
-        public Artifact(RepositoryEvent event) {
+        public Artifact(RepositoryEvent event, RepositoryLayout repositoryLayout) {
             repositoryId = event.getRepository().getId();
             groupId = event.getArtifact().getGroupId();
             artifactId = event.getArtifact().getArtifactId();
@@ -83,12 +77,10 @@ public class RecorderAction extends InvisibleAction {
             String downloadPath = "";
             String downloadFileName = "";
             String downloadUrl = "";
-            if (event.getRepository() instanceof RemoteRepository) {
+            if (repositoryLayout != null && event.getRepository() instanceof RemoteRepository) {
                 // As long as we are only recording deployments, this will always be remote.
                 try {
-                    URI downloadLocation = repositoryLayoutProvider
-                            .newRepositoryLayout(session, (RemoteRepository) event.getRepository())
-                            .getLocation(event.getArtifact(), false);
+                    URI downloadLocation = repositoryLayout.getLocation(event.getArtifact(), false);
                     URI repoUri = new URI(((RemoteRepository) event.getRepository()).getUrl());
 
                     downloadPath = repoUri.relativize(downloadLocation).getPath();
@@ -103,7 +95,7 @@ public class RecorderAction extends InvisibleAction {
                         downloadLocation.getQuery(),
                         downloadLocation.getFragment()
                     ).toString();
-                } catch (NoRepositoryLayoutException | URISyntaxException ignored) {
+                } catch (URISyntaxException ignored) {
                 }
             }
             if (downloadUrl.isEmpty()) {
