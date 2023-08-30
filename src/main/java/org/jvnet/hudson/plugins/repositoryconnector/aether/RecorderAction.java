@@ -86,11 +86,12 @@ public class RecorderAction extends InvisibleAction {
             if (event.getRepository() instanceof RemoteRepository) {
                 // As long as we are only recording deployments, this will always be remote.
                 try {
-                    String repoUriRoot = new URI(((RemoteRepository) event.getRepository()).getUrl()).getPath();
                     URI downloadLocation = repositoryLayoutProvider
                             .newRepositoryLayout(session, (RemoteRepository) event.getRepository())
                             .getLocation(event.getArtifact(), false);
-                    downloadPath = Paths.get(repoUriRoot).relativize(Paths.get(downloadLocation.getPath())).toString();
+                    URI repoUri = new URI(((RemoteRepository) event.getRepository()).getUrl());
+
+                    downloadPath = repoUri.relativize(downloadLocation).getPath();
                     downloadFileName = Paths.get(downloadPath).getFileName().toString();
                     // Set downloadUrl last, so we can use it below to ensure all 3 download* vars are set if it is set.
                     downloadUrl = new URI(
