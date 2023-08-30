@@ -2,7 +2,6 @@ package org.jvnet.hudson.plugins.repositoryconnector.aether;
 
 import hudson.model.InvisibleAction;
 import org.eclipse.aether.RepositoryEvent;
-import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.repository.ArtifactRepository;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.spi.connector.layout.RepositoryLayout;
@@ -10,7 +9,6 @@ import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
 import java.net.URI;
-import java.io.File;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -38,8 +36,8 @@ public class RecorderAction extends InvisibleAction {
         artifactsDeployed.add(new Artifact(event, repositoryLayout));
     }
 
-    public void recordMetadataDeployed(RepositoryEvent event) {
-        metadataDeployed.add(new Metadata(event));
+    public void recordMetadataDeployed(RepositoryEvent event, RepositoryLayout repositoryLayout) {
+        metadataDeployed.add(new Metadata(event, repositoryLayout));
     }
 
     @Exported
@@ -192,34 +190,64 @@ public class RecorderAction extends InvisibleAction {
         private final String fileName;
         private final String url;
 
-        public Metadata(RepositoryEvent event) {
-            repositoryId = event.getRepository().getId();
-            groupId = event.getMetadata().getGroupId();
-            artifactId = event.getMetadata().getArtifactId();
-            version = event.getMetadata().getVersion();
-            nature = event.getMetadata().getNature().toString();
-            type = event.getMetadata().getType();
-            File file = event.getFile();
-//            File file = event.getMetadata().getFile();
-            if (file == null) {
-                // this shouldn't happen after deploy, but be defensive.
-                filePath = fileName = "";
-            } else {
-                filePath = file.getPath();
-                fileName = file.getName();
+        public Metadata(RepositoryEvent event, RepositoryLayout repositoryLayout) {
+            ArtifactRepository repository = event.getRepository();
+            org.eclipse.aether.metadata.Metadata metadata = event.getMetadata();
+
+            repositoryId = repository.getId();
+            groupId = metadata.getGroupId();
+            artifactId = metadata.getArtifactId();
+            version = metadata.getVersion();
+            nature = metadata.getNature().toString();
+            type = metadata.getType();
+
+            String downloadPath = "";
+            String downloadFileName = "";
+            String downloadUrl = "";
+            if (repositoryLayout != null && repository instanceof RemoteRepository) {
+                // As long as we are only recording deployments, this will always be remote.
+                try {
+                    // getLocation returns a URI instance that ONLY has a path (no scheme, host, ...)
+                    URI downloadLocation = repositoryLayout.getLocation(metadata, false);
+                    downloadPath = downloadLocation.getPath();
+                    downloadFileName = Paths.get(downloadPath).getFileName().toString();
+
+                    URI repoUri = new URI(((RemoteRepository) repository).getUrl());
+                    downloadUrl = new URI(
+                            repoUri.getScheme(),
+                            null, // drop any userInfo (user:password)
+                            repoUri.getHost(),
+                            repoUri.getPort(),
+                            repoUri.resolve(downloadLocation).getPath(),
+                            repoUri.getQuery(),
+                            repoUri.getFragment()
+                    ).toString();
+                } catch (URISyntaxException ignored) {
+                }
             }
-            // based on maven2 (default) repository layout: https://maven.apache.org/repository/layout.html
-            String relativeUrl = groupId.replace(".", "/")
-                    + "/" + artifactId
-                    + "/" + version
-                    + "/" + fileName;
-            if (event.getRepository() instanceof RemoteRepository) {
-                url = ((RemoteRepository) event.getRepository())
-                        .getUrl().replaceAll("/+$", "") + "/"
-                        + relativeUrl;
-            } else {
-                url = relativeUrl;
+            if (downloadPath.isEmpty() && downloadFileName.isEmpty()) {
+                downloadFileName = type; // "maven-metadata.xml"
+                // based on maven2 (default) repository layout: https://maven.apache.org/repository/layout.html
+                if (groupId.isEmpty()) {
+                    downloadPath = downloadFileName;
+                } else {
+                    downloadPath = groupId.replace(".", "/") + "/";
+                    if (!artifactId.isEmpty()) {
+                        downloadPath += artifactId + "/";
+                        if (!version.isEmpty()) {
+                            downloadPath += version + "/";
+                        }
+                    }
+                    downloadPath += downloadFileName;
+                }
             }
+            if (downloadUrl.isEmpty()) {
+                // We don't have the remote url, so punt and use that path.
+                downloadUrl = downloadPath;
+            }
+            filePath = downloadPath;
+            fileName = downloadFileName;
+            url = downloadUrl;
         }
 
         @Exported

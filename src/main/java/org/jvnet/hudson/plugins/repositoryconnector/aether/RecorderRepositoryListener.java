@@ -39,7 +39,7 @@ public class RecorderRepositoryListener extends AbstractRepositoryListener {
 
     @Override
     public void metadataDeployed(RepositoryEvent event) {
-        action.recordMetadataDeployed(event);
+        action.recordMetadataDeployed(event, getRepositoryLayout(event));
     }
 
     private RepositoryLayout getRepositoryLayout(RepositoryEvent event) {
