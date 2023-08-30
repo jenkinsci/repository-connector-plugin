@@ -81,11 +81,7 @@ public class RecorderAction extends InvisibleAction {
                 // As long as we are only recording deployments, this will always be remote.
                 try {
                     URI downloadLocation = repositoryLayout.getLocation(event.getArtifact(), false);
-                    URI repoUri = new URI(((RemoteRepository) event.getRepository()).getUrl());
-
-                    downloadPath = repoUri.relativize(downloadLocation).getPath();
-                    downloadFileName = Paths.get(downloadPath).getFileName().toString();
-                    // Set downloadUrl last, so we can use it below to ensure all 3 download* vars are set if it is set.
+                    // calculate downloadUrl first to avoid any (inadvertent) changes to downloadLocation.
                     downloadUrl = new URI(
                         downloadLocation.getScheme(),
                         null, // drop any userInfo (user:password)
@@ -95,10 +91,14 @@ public class RecorderAction extends InvisibleAction {
                         downloadLocation.getQuery(),
                         downloadLocation.getFragment()
                     ).toString();
+
+                    downloadPath = (new URI(((RemoteRepository) event.getRepository()).getUrl()))
+                            .relativize(downloadLocation).getPath();
+                    downloadFileName = Paths.get(downloadPath).getFileName().toString();
                 } catch (URISyntaxException ignored) {
                 }
             }
-            if (downloadUrl.isEmpty()) {
+            if (downloadPath.isEmpty() && downloadFileName.isEmpty()) {
                 // based on maven2 (default) repository layout: https://maven.apache.org/repository/layout.html
                 if (classifier.isEmpty()) {
                     downloadFileName = artifactId + "-" + version + "." + extension;
@@ -109,6 +109,8 @@ public class RecorderAction extends InvisibleAction {
                         + "/" + artifactId
                         + "/" + version
                         + "/" + downloadFileName;
+            }
+            if (downloadUrl.isEmpty()) {
                 // We don't have the remote url, so punt and use that path.
                 downloadUrl = downloadPath;
             }
