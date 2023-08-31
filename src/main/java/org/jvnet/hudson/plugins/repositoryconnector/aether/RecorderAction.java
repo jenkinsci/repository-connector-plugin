@@ -62,6 +62,19 @@ public class RecorderAction extends InvisibleAction {
             Path file = Paths.get(path).getFileName();
             return (file == null) ? "" : file.toString();
         }
+
+        protected static String getDownloadUrl(RemoteRepository repository, URI pathUri) throws URISyntaxException {
+            URI repoUri = new URI(repository.getUrl());
+            return new URI(
+                repoUri.getScheme(),
+                null, // drop any userInfo (user:password)
+                repoUri.getHost(),
+                repoUri.getPort(),
+                repoUri.resolve(pathUri).getPath(),
+                repoUri.getQuery(),
+                repoUri.getFragment()
+            ).toString();
+        }
     }
 
     @ExportedBean(defaultVisibility = 999)
@@ -101,17 +114,7 @@ public class RecorderAction extends InvisibleAction {
                     URI downloadLocation = repositoryLayout.getLocation(artifact, false);
                     downloadPath = getPathFromUri(downloadLocation);
                     downloadFileName = getFileNameFromPath(downloadPath);
-
-                    URI repoUri = new URI(((RemoteRepository) repository).getUrl());
-                    downloadUrl = new URI(
-                        repoUri.getScheme(),
-                        null, // drop any userInfo (user:password)
-                        repoUri.getHost(),
-                        repoUri.getPort(),
-                        repoUri.resolve(downloadLocation).getPath(),
-                        repoUri.getQuery(),
-                        repoUri.getFragment()
-                    ).toString();
+                    downloadUrl = getDownloadUrl((RemoteRepository) repository, downloadLocation);
                 } catch (URISyntaxException ignored) {
                 }
             }
@@ -225,17 +228,7 @@ public class RecorderAction extends InvisibleAction {
                     URI downloadLocation = repositoryLayout.getLocation(metadata, false);
                     downloadPath = getPathFromUri(downloadLocation);
                     downloadFileName = getFileNameFromPath(downloadPath);
-
-                    URI repoUri = new URI(((RemoteRepository) repository).getUrl());
-                    downloadUrl = new URI(
-                            repoUri.getScheme(),
-                            null, // drop any userInfo (user:password)
-                            repoUri.getHost(),
-                            repoUri.getPort(),
-                            repoUri.resolve(downloadLocation).getPath(),
-                            repoUri.getQuery(),
-                            repoUri.getFragment()
-                    ).toString();
+                    downloadUrl = getDownloadUrl((RemoteRepository) repository, downloadLocation);
                 } catch (URISyntaxException ignored) {
                 }
             }
