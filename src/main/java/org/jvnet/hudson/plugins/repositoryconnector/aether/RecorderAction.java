@@ -2,6 +2,7 @@ package org.jvnet.hudson.plugins.repositoryconnector.aether;
 
 import hudson.model.InvisibleAction;
 import org.eclipse.aether.RepositoryEvent;
+import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.repository.ArtifactRepository;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.spi.connector.layout.RepositoryLayout;
@@ -10,6 +11,7 @@ import org.kohsuke.stapler.export.ExportedBean;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -85,8 +87,8 @@ public class RecorderAction extends InvisibleAction {
                 try {
                     // getLocation returns a URI instance that ONLY has a path (no scheme, host, ...)
                     URI downloadLocation = repositoryLayout.getLocation(artifact, false);
-                    downloadPath = downloadLocation.getPath();
-                    downloadFileName = Paths.get(downloadPath).getFileName().toString();
+                    downloadPath = getPathFromUri(downloadLocation);
+                    downloadFileName = getFileNameFromPath(downloadPath);
 
                     URI repoUri = new URI(((RemoteRepository) repository).getUrl());
                     downloadUrl = new URI(
@@ -120,6 +122,15 @@ public class RecorderAction extends InvisibleAction {
             filePath = downloadPath;
             fileName = downloadFileName;
             url = downloadUrl;
+        }
+
+        private static String getPathFromUri(URI uri) {
+            String path = uri.getPath();
+            return (path == null) ? "" : path;
+        }
+        private static String getFileNameFromPath(String path) {
+            Path file = Paths.get(path).getFileName();
+            return (file == null) ? "" : file.toString();
         }
 
         @Exported
