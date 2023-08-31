@@ -2,7 +2,6 @@ package org.jvnet.hudson.plugins.repositoryconnector.aether;
 
 import hudson.model.InvisibleAction;
 import org.eclipse.aether.RepositoryEvent;
-import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.repository.ArtifactRepository;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.spi.connector.layout.RepositoryLayout;

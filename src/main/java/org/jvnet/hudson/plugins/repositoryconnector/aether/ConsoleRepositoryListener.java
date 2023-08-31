@@ -12,8 +12,8 @@ public class ConsoleRepositoryListener extends RecorderRepositoryListener {
 
     private PrintStream out;
 
-    public ConsoleRepositoryListener(PrintStream out, RepositoryLayoutProvider layoutProvider, RepositorySystemSession session, Run<?, ?> context) {
-        super(layoutProvider, session, context);
+    public ConsoleRepositoryListener(PrintStream out, RepositoryLayoutProvider layoutProvider, Run<?, ?> context) {
+        super(layoutProvider, context);
         this.out = (out != null) ? out : System.out;
     }
 

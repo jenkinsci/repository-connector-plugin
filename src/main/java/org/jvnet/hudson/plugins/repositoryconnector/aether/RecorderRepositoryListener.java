@@ -17,11 +17,8 @@ public class RecorderRepositoryListener extends AbstractRepositoryListener {
 
     private final RepositoryLayoutProvider repositoryLayoutProvider;
 
-    private final RepositorySystemSession session;
-
-    public RecorderRepositoryListener(RepositoryLayoutProvider repositoryLayoutProvider, RepositorySystemSession session, Run<?, ?> context) {
+    public RecorderRepositoryListener(RepositoryLayoutProvider repositoryLayoutProvider, Run<?, ?> context) {
         this.repositoryLayoutProvider = repositoryLayoutProvider;
-        this.session = session;
         // assumption: artifacts will only be deployed/installed when run is not null.
         // Otherwise, we're just constructing the Job metadata (adding the post-build step)
         // which will not actually perform these actions.
@@ -47,7 +44,7 @@ public class RecorderRepositoryListener extends AbstractRepositoryListener {
             return null;
         }
         try {
-            return repositoryLayoutProvider.newRepositoryLayout(session, (RemoteRepository) event.getRepository());
+            return repositoryLayoutProvider.newRepositoryLayout(event.getSession(), (RemoteRepository) event.getRepository());
         } catch (NoRepositoryLayoutException ignored) {
             return null;
         }

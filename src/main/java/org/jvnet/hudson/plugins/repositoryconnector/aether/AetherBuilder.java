@@ -135,9 +135,9 @@ public class AetherBuilder {
         session.setLocalRepositoryManager(repositorySystem.newLocalRepositoryManager(session, localRepository));
 
         if (repositoryConsole != null) {
-            session.setRepositoryListener(new ConsoleRepositoryListener(repositoryConsole, repositoryLayoutProvider, session, context));
+            session.setRepositoryListener(new ConsoleRepositoryListener(repositoryConsole, repositoryLayoutProvider, context));
         } else {
-            session.setRepositoryListener(new RecorderRepositoryListener(repositoryLayoutProvider, session, context));
+            session.setRepositoryListener(new RecorderRepositoryListener(repositoryLayoutProvider, context));
         }
 
         if (transferConsole != null) {
