@@ -52,8 +52,20 @@ public class RecorderAction extends InvisibleAction {
         return metadataDeployed;
     }
 
+    public static class Base {
+        protected static String getPathFromUri(URI uri) {
+            String path = uri.getPath();
+            return (path == null) ? "" : path;
+        }
+
+        protected static String getFileNameFromPath(String path) {
+            Path file = Paths.get(path).getFileName();
+            return (file == null) ? "" : file.toString();
+        }
+    }
+
     @ExportedBean(defaultVisibility = 999)
-    public static class Artifact {
+    public static class Artifact extends Base {
         private final String repositoryId;
         private final String groupId;
         private final String artifactId;
@@ -124,15 +136,6 @@ public class RecorderAction extends InvisibleAction {
             url = downloadUrl;
         }
 
-        private static String getPathFromUri(URI uri) {
-            String path = uri.getPath();
-            return (path == null) ? "" : path;
-        }
-        private static String getFileNameFromPath(String path) {
-            Path file = Paths.get(path).getFileName();
-            return (file == null) ? "" : file.toString();
-        }
-
         @Exported
         public String getRepositoryId() {
             return repositoryId;
@@ -190,7 +193,7 @@ public class RecorderAction extends InvisibleAction {
     }
 
     @ExportedBean(defaultVisibility = 999)
-    public static class Metadata {
+    public static class Metadata extends Base {
         private final String repositoryId;
         private final String groupId;
         private final String artifactId;
@@ -220,8 +223,8 @@ public class RecorderAction extends InvisibleAction {
                 try {
                     // getLocation returns a URI instance that ONLY has a path (no scheme, host, ...)
                     URI downloadLocation = repositoryLayout.getLocation(metadata, false);
-                    downloadPath = downloadLocation.getPath();
-                    downloadFileName = Paths.get(downloadPath).getFileName().toString();
+                    downloadPath = getPathFromUri(downloadLocation);
+                    downloadFileName = getFileNameFromPath(downloadPath);
 
                     URI repoUri = new URI(((RemoteRepository) repository).getUrl());
                     downloadUrl = new URI(
