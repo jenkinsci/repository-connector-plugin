@@ -2,19 +2,24 @@ package org.jvnet.hudson.plugins.repositoryconnector.aether;
 
 import java.io.PrintStream;
 
-import org.eclipse.aether.AbstractRepositoryListener;
 import org.eclipse.aether.RepositoryEvent;
 
-public class ConsoleRepositoryListener extends AbstractRepositoryListener {
+import hudson.model.Run;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.spi.connector.layout.RepositoryLayoutProvider;
+
+public class ConsoleRepositoryListener extends RecorderRepositoryListener {
 
     private PrintStream out;
 
-    public ConsoleRepositoryListener(PrintStream out) {
+    public ConsoleRepositoryListener(PrintStream out, RepositoryLayoutProvider layoutProvider, Run<?, ?> context) {
+        super(layoutProvider, context);
         this.out = (out != null) ? out : System.out;
     }
 
     @Override
     public void artifactDeployed(RepositoryEvent event) {
+        super.artifactDeployed(event);
         out.println("Deployed " + event.getArtifact() + " to " + event.getRepository());
     }
 
@@ -59,6 +64,7 @@ public class ConsoleRepositoryListener extends AbstractRepositoryListener {
 
     @Override
     public void metadataDeployed(RepositoryEvent event) {
+        super.metadataDeployed(event);
         out.println("Deployed " + event.getMetadata() + " to " + event.getRepository());
     }
 

@@ -19,6 +19,7 @@ import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.Proxy;
 import org.eclipse.aether.repository.ProxySelector;
 import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
+import org.eclipse.aether.spi.connector.layout.RepositoryLayoutProvider;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
@@ -26,6 +27,7 @@ import org.eclipse.aether.util.repository.AuthenticationBuilder;
 import org.eclipse.aether.util.repository.DefaultProxySelector;
 import org.jvnet.hudson.plugins.repositoryconnector.Repository;
 
+import hudson.model.Run;
 import hudson.ProxyConfiguration;
 import hudson.Util;
 import hudson.util.Secret;
@@ -33,6 +35,8 @@ import hudson.util.Secret;
 public class AetherBuilder {
 
     private static final Logger logger = Logger.getLogger(AetherBuilder.class.getName());
+
+    private Run<?, ?> context;
 
     private Function<Repository, Authentication> credentials;
 
@@ -56,10 +60,17 @@ public class AetherBuilder {
     public Aether build() {
         ProxySelector proxySelector = createProxySelector();
 
-        RepositorySystem repositorySystem = createRepositorySystem();
-        RepositorySystemSession repositorySession = createRepositorySession(repositorySystem, proxySelector);
+        DefaultServiceLocator locator = createServiceLocator();
+        RepositorySystem repositorySystem = createRepositorySystem(locator);
+        RepositoryLayoutProvider repositoryLayoutProvider = createRepositoryLayoutProvider(locator);
+        RepositorySystemSession repositorySession = createRepositorySession(repositorySystem, proxySelector, repositoryLayoutProvider);
 
         return new Aether(new RemoteRepositoryFactory(repositories, proxySelector, credentials), repositorySystem, repositorySession);
+    }
+
+    public AetherBuilder setContext(Run<?, ?> context) {
+        this.context = context;
+        return this;
     }
 
     public AetherBuilder setCredentials(Function<Repository, Authentication> credentials) {
@@ -111,7 +122,7 @@ public class AetherBuilder {
                 .build();
     }
 
-    private RepositorySystemSession createRepositorySession(RepositorySystem repositorySystem, ProxySelector proxySelector) {
+    private RepositorySystemSession createRepositorySession(RepositorySystem repositorySystem, ProxySelector proxySelector, RepositoryLayoutProvider repositoryLayoutProvider) {
         DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
 
         session.setProxySelector(proxySelector);
@@ -124,7 +135,9 @@ public class AetherBuilder {
         session.setLocalRepositoryManager(repositorySystem.newLocalRepositoryManager(session, localRepository));
 
         if (repositoryConsole != null) {
-            session.setRepositoryListener(new ConsoleRepositoryListener(repositoryConsole));
+            session.setRepositoryListener(new ConsoleRepositoryListener(repositoryConsole, repositoryLayoutProvider, context));
+        } else {
+            session.setRepositoryListener(new RecorderRepositoryListener(repositoryLayoutProvider, context));
         }
 
         if (transferConsole != null) {
@@ -134,7 +147,7 @@ public class AetherBuilder {
         return session;
     }
 
-    private RepositorySystem createRepositorySystem() {
+    private DefaultServiceLocator createServiceLocator() {
 
         DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
         locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
@@ -149,7 +162,15 @@ public class AetherBuilder {
             }
         });
 
+        return locator;
+    }
+
+    private RepositorySystem createRepositorySystem(DefaultServiceLocator locator) {
         return locator.getService(RepositorySystem.class);
+    }
+
+    private RepositoryLayoutProvider createRepositoryLayoutProvider(DefaultServiceLocator locator) {
+        return locator.getService(RepositoryLayoutProvider.class);
     }
 
     // visible for testing

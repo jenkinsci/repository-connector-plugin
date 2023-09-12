@@ -37,9 +37,11 @@ public class TokenMacroExpander {
         Artifact expanded = new Artifact(groupId, artifactId, version);
         expanded.setClassifier(expand(artifact.getClassifier()));
         expanded.setExtension(expand(artifact.getExtension()));
+        expanded.setPomFile(expand(artifact.getPomFile()));
         expanded.setTargetFileName(expand(artifact.getTargetFileName()));
         
         expanded.setFailOnError(artifact.isFailOnError());
+        expanded.setDeployToLocal(artifact.isDeployToLocal());
         expanded.setDeployToRemote(artifact.isDeployToRemote());
 
         return expanded;

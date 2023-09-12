@@ -67,6 +67,7 @@ abstract class AbstractArtifactTest {
         artifact.setFailOnError(failOnError);
 
         artifacts.add(artifact);
+        // expand() actually recreates the Artifact, but this is good enough for this mock.
         when(mockExpander.expand(artifact)).thenReturn(artifact);
 
         return artifact;
