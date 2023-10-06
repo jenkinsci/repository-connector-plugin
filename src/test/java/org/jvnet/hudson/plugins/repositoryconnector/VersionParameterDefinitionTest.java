@@ -15,7 +15,7 @@ import org.mockito.Mock;
 
 import hudson.model.Item;
 
-public class VersionParameterDefinitionTest extends AbstractArtifactTest {
+public class VersionParameterDefinitionTest extends SecondAbstractArtifactTest {
 
     @Mock
     private Item mockItem;
