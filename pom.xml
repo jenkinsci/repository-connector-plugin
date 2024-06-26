@@ -24,7 +24,7 @@
     <casc-plugin.version>1.44</casc-plugin.version>
     <credentials-plugin.version>2.3.13</credentials-plugin.version>
     <jobdsl-plugin.version>1.77</jobdsl-plugin.version>
-    <structs-plugin.version>1.20</structs-plugin.version>
+    <structs-plugin.version>338.v848422169819</structs-plugin.version>
     <token-macro-plugin.version>2.12</token-macro-plugin.version>
   </properties>
 
